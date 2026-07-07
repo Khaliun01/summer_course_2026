@@ -1,0 +1,16 @@
+#naadam-festival{
+    background-color: yellow;
+    border-top: 2px;
+    border-left-style: dotted;
+}
+
+.hi{
+    background-color: azure;
+    color: tomato;
+    text-align: right;
+    border: 5px solid rgba(256, green782, blue279, alpha278);
+}
+
+h2{
+    border: 5px dotted purple;
+}
