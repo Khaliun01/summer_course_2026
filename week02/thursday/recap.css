@@ -1,0 +1,133 @@
+.boxes{
+    width: 150px;
+    height: 80px;
+    background-color: aqua;
+    color: white;
+    border: 3px solid violet;
+    display: inline-block;
+}
+#box1{
+    border-style: dotted;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+}
+#box2{
+    border-style: dashed;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+#box3{
+    border-style: solid;
+    border-radius: 30px;
+}
+#box4{
+    border-style: groove;
+    border-radius: 50%;
+}
+#box5{
+    border-style: double;
+}
+img{
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 5px double olive;
+    margin-left: 18%;
+    padding: 30px;
+}
+
+#image-container{
+    width: 1440px;
+    margin: 0 auto;
+}
+.centered{
+    width: 800px;
+    height: 200px;
+    background-color: wheat;
+    margin: 0 auto;
+}
+.card{
+    max-width: 320px;
+    padding: 20px auto;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    border-top: 4px solid #4f46e5;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.card-name{
+    color: #1e293b;
+    font-size: 22px;
+    margin-bottom: 4PX;
+}
+
+.card-role{
+    color: #4f46e5;
+    font-weight: bold;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.card-bio{
+    color: #64748b;
+    line-height: 1.6;
+    margin-top: 10px;
+}
+.card02{
+    max-width: 320px;
+    padding: 20px auto;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    border-top: 4px solid #15a238;
+    border-radius: 12px;
+    text-align: center;
+}
+.card-name02{
+    color: #1e293b;
+    font-size: 22px;
+    margin-bottom: 4PX;
+}
+
+.card-role02{
+    color: #15a238;
+    font-weight: bold;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.card-bio02{
+    color: #d194e1;
+    line-height: 1.6;
+    margin-top: 10px;
+}
+.card03{
+    max-width: 320px;
+    padding: 20px auto;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    border-top: 4px solid #e54696;
+    border-radius: 50%;
+    text-align: center;
+}
+
+.card-name03{
+    color: #1e293b;
+    font-size: 22px;
+    margin-bottom: 4PX;
+}
+
+.card-role03{
+    color: #be6fa4;
+    font-weight: bold;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.card-bio03{
+    color: #206bd4;
+    line-height: 1.6;
+    margin-top: 10px;
+}
+
+
