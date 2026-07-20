@@ -1,0 +1,18 @@
+h2 {
+    color: aqua;
+    text-align: center;
+    padding-top: 40px;
+}
+main {
+    width: 800px;
+    height: 600px;
+    background-color: beige;
+    border-radius: 15px;
+    margin: 0 auto;
+}
+p {
+    padding: 10px;
+    border: 2px dotted blue;
+    margin-top: 80px;
+    margin-bottom: 80px;
+}

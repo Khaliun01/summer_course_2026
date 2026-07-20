@@ -1,0 +1,101 @@
+.ex1{
+    width: 300px;
+    height: 200px;
+    background-color: blue;
+}
+.ex2{
+    max-width: 500px;
+    max-height: 300px;
+    overflow: auto;
+    background-color: rgb(101, 101, 221);
+    padding: 15px;
+}
+.ex3{
+    width: 200px;
+    height: 200px;
+    background-color: aqua;
+    overflow: hidden;
+}
+.ex4{
+    width: 300px;
+    height: 300px;
+    background-color: aqua;
+   overflow-y: scroll;
+}
+.ex5{
+    height: 300px;
+    width: 500px;
+    background-color: aqua;
+    border: 1px solid black;
+    overflow-y: scroll;
+    text-align: center;
+}
+.ex51{
+    height: 100px;
+    width: 150px;
+    background-color: pink;
+    border: 1px solid black;
+    overflow-y: scroll;
+    padding: 15px;
+    margin: 10px;
+    display: inline-block; 
+    vertical-align: top;
+}
+.ex52{
+    height: 100px;
+    width: 150px;
+    background-color: yellow;
+    border: 1px solid black;
+    overflow-y: scroll;
+    padding: 15px;
+    margin: 10px;
+    display: inline-block;
+    vertical-align: top;
+}
+.ex6 {
+    padding: 20px;
+    margin: 0 auto;
+}
+.column {
+    background-color: #bee3f8; 
+    padding: 20px;
+    display: inline-block;
+}
+.column h3 {
+    margin-bottom: 10px;
+    font-size: 34px;
+    color: #1a202c;
+}
+.column p {
+    color: #4a5568;
+    font-size: 16px;
+}
+.ex7{
+    width: 100%;
+    max-width: 400px;
+    min-width: 200px;
+    background-color: azure;
+    border: 1px solid black;
+}
+.ex8{
+    max-height: 300px;
+    min-height: 100px;
+    background-color: beige;
+    border: 1px solid black;
+}
+img{
+    width: 300px;
+    height: 300px;
+}
+.ex9{
+    width: 100% auto;
+}
+.ex101{
+    width: 300px;
+    background-color: bisque;
+    padding: 20px;
+    overflow-x: scroll;
+}
+.ex10{
+    width: 400px;
+}
