@@ -1,0 +1,170 @@
+.ex01{
+    height: 100px;
+    width: 400px;
+    border: solid black 2px;
+}
+#ex01{
+    height: 100px;
+    width: 200px;
+    background-color: rgb(55, 181, 181);
+    margin: 0 auto;
+}
+.ex02{
+    height: 100px;
+    width: 350px;
+    border: solid black 2px;
+}
+.ex02 p{
+    text-align: center;
+    padding-top: 20px;
+}
+.ex03{
+    background-color: rgb(55, 181, 181);
+    display: block;
+}
+#ex03{
+    background-color: rgb(55, 181, 181);
+    display: inline;
+}
+.ex04{
+    background-color: rgb(55, 181, 181);
+    display: inline;
+}
+#ex04{
+    background-color: rgb(55, 181, 181);
+    display: inline;
+}
+.ex05{
+    background-color: rgb(240, 119, 166);
+    display: inline-block;
+}
+#ex05{
+    background-color: rgb(240, 119, 166);
+}
+.ex06{
+    width: 300px;
+    height: 250px;
+    background-color: rgb(216, 65, 123);
+    box-shadow: 5px 5px 10px  black;
+}
+.ex07{
+    width: 300px;
+    height: 200px;
+    background-color: blue;
+    box-shadow: 5px 5px 10px rgb(59, 58, 58);
+    border-radius: 20px;
+    padding-top: 75px;
+}
+#ex07{
+    width: 150px;
+    height: 100px;
+    background-color: red;
+    color: yellow;
+    border-radius: 20px;
+    margin: 0 auto;
+    line-height: 100px;
+    text-align: center;
+    text-shadow: 5px 5px 10px rgb(59, 58, 58);
+    box-shadow: 5px 5px 10px white;
+}
+.ex08{
+    background-color: #aed1e6;
+    width: 640px;
+    height: 260px;
+    padding-top: 40px;
+}
+.ex08-table{
+  background-color: #aed1e6;
+  margin: 0 auto;
+}
+.ex08-table td{
+  width: 140px;
+  height: 60px;
+  text-align: center;
+  vertical-align: middle;
+}
+.bedroom{
+  border-top: 2px solid black;
+  border-left: 2px solid black;
+  border-bottom: 2px solid black;
+}
+.balcon{
+  border-right: 2px solid black;
+  border-bottom: 2px solid black;
+}
+.bedroom2{
+  border-left: 2px solid black;
+  border-bottom: 2px solid black;
+}
+.empty-top{
+  border-top: 2px solid black; 
+}
+.empty-bottom{
+  border-bottom: 2px solid black;
+  border-right: 2px solid black;
+}
+.garage{
+  border-top: 2px solid black;
+  border-left: 2px solid black;
+}
+.empty-bottom2{
+  border-right: 2px solid black;
+}
+.kitchen{
+  border-right: 2px solid black;
+  border-top: 2px solid black;
+}
+.empty-middle2{
+  border-right: 2px solid black;
+  border-left: 2px solid black;
+}
+.livingroom{
+  border-right: 2px solid black;
+  border-bottom: 2px solid black;
+}
+#garchig{
+    padding-top: 90px;
+}
+.ex09{
+    width: 400px;
+    height: 350px;
+    background-color: grey;
+    padding-top: 50px;
+}
+.ish{
+    height: 200px;
+    width: 10px;
+    background-color: black;
+    margin: auto;
+}
+.bie{
+    height: 30px;
+    width: 30px;
+    background-color: black;
+    margin: auto;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+.gerel{
+    height: 60px;
+    width: 60px;
+    background-color: white;
+    margin: auto;
+    border-radius: 50%;
+    box-shadow: 5px 5px 5px 5px yellow;
+}
+.har{
+    width: 400px;
+    height: 350px;
+    background-color: black;
+    margin-top: 60px;
+    padding-top: 75px;
+}
+.dugui{
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background-color: black;
+    box-shadow: 0 0 15px 5px white, 0 0 100px rgb(255, 217, 0);
+    margin: auto;
+}

@@ -1,0 +1,17 @@
+.navbar{
+    background-color: #1e293b;
+    padding: 12px 20px;
+}
+.navbar li {
+    color: white;
+    text-decoration: none;
+   padding: 8px 14px;
+   margin-right: 6px;
+   border-radius: 6px;
+   transition: background-color 0.2s;
+   list-style: none;
+   display: inline;
+}
+.navbar li:hover{
+    background-color: #334155;
+}
