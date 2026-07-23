@@ -1,0 +1,365 @@
+.child01 {
+    width: 70px;
+    height: 30px;
+    background-color: green;
+}
+
+.child02 {
+    width: 70px;
+    height: 30px;
+    background-color: orange;
+}
+
+.child03 {
+    width: 70px;
+    height: 30px;
+    background-color: plum;
+}
+
+.child04 {
+    width: 70px;
+    height: 30px;
+    background-color: red;
+}
+
+.child05 {
+    width: 70px;
+    height: 30px;
+    background-color: purple;
+}
+
+.child {
+    display: flex;
+    gap: 10px;
+}
+
+.todler {
+    width: 200px;
+    height: 200px;
+    background-color: black;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    padding: 15px;
+}
+
+.todler01 {
+    width: 95px;
+    height: 95px;
+    background-color: yellow;
+}
+
+.todler02 {
+    width: 95px;
+    height: 95px;
+    background-color: orange;
+}
+
+.todler03 {
+    width: 95px;
+    height: 95px;
+    background-color: plum;
+}
+
+.todler04 {
+    width: 95px;
+    height: 95px;
+    background-color: red;
+}
+
+.ex03 {
+    height: 250px;
+    width: 480px;
+    border: 2px solid black;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    padding: 20px;
+}
+
+.ex31 {
+    height: 50px;
+    width: 150px;
+    background-color: rgb(164, 236, 212);
+    border: 2px solid black;
+}
+
+.ex32 {
+    height: 50px;
+    width: 300px;
+    background-color: rgb(108, 200, 239);
+    border: 2px solid black;
+}
+
+.ex33 {
+    height: 50px;
+    width: 150px;
+    background-color: rgb(164, 236, 212);
+    border: 2px solid black;
+}
+
+.ex34 {
+    height: 50px;
+    width: 300px;
+    background-color: rgb(108, 200, 239);
+    border: 2px solid black;
+}
+
+.ex35 {
+    height: 50px;
+    width: 150px;
+    background-color: rgb(164, 236, 212);
+    border: 2px solid black;
+}
+
+.ex36 {
+    height: 50px;
+    width: 300px;
+    background-color: rgb(108, 200, 239);
+    border: 2px solid black;
+}
+
+.ex37 {
+    height: 50px;
+    width: 460px;
+    background-color: rgb(178, 133, 221);
+    border: 2px solid black;
+}
+
+.ex04 {
+    height: 250px;
+    width: 480px;
+    border: 2px solid black;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    text-align: center;
+    padding: 10px;
+}
+
+.ex41 {
+    height: 248px;
+    width: 146px;
+    background-color: pink;
+    color: white;
+    padding-left: 20px;
+}
+
+.baruun {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 300px;
+}
+
+.ex42 {
+    height: 40px;
+    width: 299px;
+    background-color: rgb(173, 39, 39);
+    color: white;
+}
+
+.zuun {
+    display: flex;
+    justify-content: space-between;
+}
+
+.ex43 {
+    height: 190px;
+    width: 146px;
+    background-color: rgb(26, 26, 73);
+    color: white;
+}
+
+.ex44 {
+    height: 190px;
+    width: 146px;
+    background-color: rgb(26, 26, 73);
+    color: white;
+}
+
+.nogoon {
+    height: 250px;
+    width: 380px;
+    border-radius: 15px;
+    border: 1px solid rgb(171, 171, 171);
+    display: flex;
+    background-color: #F3FDE8;
+}
+
+.left {
+    width: 150px;
+    height: 250px;
+    background-color: #f8fdcf;
+    border-right: 2px dotted #41644a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    border-bottom-left-radius: 15px;
+    border-top-left-radius: 15px;
+}
+
+.level12 {
+    background-color: #f3fde8;
+    border: 1px solid #41644a;
+    border-radius: 15px;
+    padding: 3px 12px;
+    font-size: 11px;
+}
+
+.avatar {
+    width: 80px;
+    height: 90px;
+}
+
+.points {
+    background-color: #f3fde8;
+    border: 1px solid #41644a;
+    border-radius: 15px;
+    padding: 3px 12px;
+    font-size: 11px;
+}
+
+.right {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px 15px;
+}
+
+.name {
+    text-align: center;
+    margin: 0 auto;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-size: 22px;
+}
+
+.info {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    font-size: 11px;
+}
+
+.stats {
+    display: flex;
+    justify-content: space-between;
+    text-align: center;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat-title {
+    font-size: 9px;
+    margin: 0 auto;
+}
+
+.stat-item img {
+    width: 22px;
+    height: 22px;
+}
+
+.stat-num {
+    font-size: 12px;
+    margin: 0 auto;
+}
+
+.yagaan {
+    height: 250px;
+    width: 380px;
+    border-radius: 15px;
+    border: 1px solid rgb(171, 171, 171);
+    display: flex;
+    background-color: #ffeef4;
+}
+
+.leftya {
+    width: 150px;
+    height: 250px;
+    background-color: #ffd1da;
+    border-right: 2px dotted #db005b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    border-bottom-left-radius: 15px;
+    border-top-left-radius: 15px;
+}
+
+.level12ya {
+    background-color: #ffeef4;
+    border: 1px solid #db005b;
+    border-radius: 15px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.avatar02 {
+    width: 80px;
+    height: 90px;
+}
+
+.pointsya {
+    background-color: #ffeef4;
+    border: 1px solid #db005b;
+    border-radius: 15px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.right {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px 10px;
+}
+
+.name {
+    text-align: center;
+    margin: 0 auto;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-size: 22px;
+}
+
+.info {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    font-size: 11px;
+}
+
+.stats {
+    display: flex;
+    justify-content: space-between;
+    text-align: center;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat-title {
+    font-size: 9px;
+    margin: 0 auto;
+}
+
+.stat-item img {
+    width: 22px;
+    height: 22px;
+}
+
+.stat-num {
+    font-size: 12px;
+    margin: 0 auto;
+}

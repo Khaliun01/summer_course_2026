@@ -1,0 +1,32 @@
+.flex-container{
+    width: 800px;
+    height: 800px;
+    background-color: rgb(141, 231, 231);
+    display: flex;
+    margin: 0 auto;
+    justify-content: space-evenly;
+    align-items: center;
+}
+.flex-child{
+    width: 50px;
+    height: 50px;
+    border: 2px solid black;
+    display: flex;
+    align-items: center;
+    text-align: center;
+}
+.flex01{
+    background-color: brown;
+}
+.flex02{
+    background-color: pink;
+}
+.flex03{
+    background-color: red;
+}
+.flex04{
+    background-color: yellow;
+}
+.flex05{
+    background-color: green;
+}
