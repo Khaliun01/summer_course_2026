@@ -1,0 +1,77 @@
+body{
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f4f7f6;
+}
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+}
+.navbar{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background-color: #2b2d42;
+    color: #ffffff;
+}
+.nav-links{
+    display: flex;
+    gap: 20px;
+    list-style: none;
+}
+.nav-links a{
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: bold;
+}
+.hero-section{
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+.profile-card{
+    display: flex;
+    gap: 30px;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgb(0, 0, 0, 0.1);
+    background-color: #ffffff;
+    max-width: 700px;
+}
+.profile-image{
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: rgb(65, 103, 103);
+    flex-shrink: 0;
+}
+.profile-info{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 15px;
+}
+.action-btn{
+    background-color: #ef233c;
+    border-radius: 6px;
+    border: none;
+    color: #ffffff;
+    width: 140px;
+    padding: 12px 24px;
+    font-weight: bold;
+    cursor: pointer;
+    align-self: flex-start;
+}
+.site-footer{
+    padding: 20px;
+    background-color: #8d99ae;
+    text-align: center;
+    color: #ffffff;
+}

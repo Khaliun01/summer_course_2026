@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .box {
+            background-color: #4a90e2;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .grid-equal {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 15px;
+            height: 400px;
+        }
+    </style>
+    <link rel="stylesheet" href="grids.css">
+</head>
+
+<body>
+    <div class="grid-equal">
+        <div class="box">1</div>
+        <div class="box">2</div>
+        <div class="box">3</div>
+        <div class="box">4</div>
+        <div class="box">5</div>
+        <div class="box">6</div>
+    </div>
+
+    <h1>Next Grid</h1>
+    <div class="grid-ratio">
+        <div class="box">Hajuugiin medeelel</div>
+        <div class="box">Gol content</div>
+        <div class="box">Surtalchilgaa</div>
+    </div>
+
+    <h1>Next Grid</h1>
+    <div class="grid-mixed">
+        <header class="header">Tolgoi heseg</header>
+        <aside class="sidebar">Saidbar</aside>
+        <main class="content">Yndsen heseg</main>
+    </div>
+</body>
+
+</html>

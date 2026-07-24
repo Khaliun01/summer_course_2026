@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .item{
+            background-color: wheat;
+            color: red;
+            border: 2px solid yellow;
+        }
+        .grid-bento{
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 200px);
+            gap: 15px;
+        }
+
+        .feature-main{
+            grid-column: 1 / 3;
+            grid-row: 1 / 3;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bento">
+        <div class="item feature-main">Main Feature</div>
+        <div class="item">Side 1</div>
+        <div class="item">Side 2</div>
+    </div>
+    
+</body>
+</html>
