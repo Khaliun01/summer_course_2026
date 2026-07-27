@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="mn">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Grid дасгал - Хуудасны бүтэц ба галерей</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+        }
+
+        .page {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            grid-template-areas:
+                "header header"
+                "sidebar main"
+                "footer footer";
+            min-height: 100vh;
+        }
+
+        .header {
+            grid-area: header;
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 16px;
+        }
+
+        .sidebar {
+            grid-area: sidebar;
+            background-color: #e2e8f0;
+            padding: 16px;
+        }
+
+        .main {
+            grid-area: main;
+            padding: 16px;
+        }
+
+        .footer {
+            grid-area: footer;
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .tile {
+            background-color: #dbeafe;
+            padding: 24px;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        .tile-wide {
+            grid-column: span 2;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page">
+        <header class="header">Тэргүүлэгчдийн самбар</header>
+
+        <aside class="sidebar">
+            <p>Цэс</p>
+            <p>Тоглогчид</p>
+            <p>Оноо</p>
+            <p>Тохиргоо</p>
+        </aside>
+
+        <main class="main">
+            <h2>Шилдэг оноо</h2>
+            <div class="gallery">
+                <div class="tile tile-wide">Бат-Эрдэнэ — 9800</div>
+                <div class="tile">Сарнай — 8700</div>
+                <div class="tile">Тэмүүлэн — 8500</div>
+                <div class="tile">Анужин — 8200</div>
+                <div class="tile">Ганболд — 7900</div>
+            </div>
+        </main>
+
+        <footer class="footer">2026 GameShop</footer>
+    </div>
+
+</body>
+
+</html>
