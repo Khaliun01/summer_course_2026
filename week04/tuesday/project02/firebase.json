@@ -1,0 +1,17 @@
+{
+  "hosting": {
+    "site": "summer-course-2026-khaliun-f6a6a",
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

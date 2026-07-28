@@ -1,0 +1,1 @@
+firebase deploy --only hosting:summer-course-2026-khaliun-f6a6a
