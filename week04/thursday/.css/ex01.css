@@ -1,0 +1,15 @@
+.text{
+    max-width: 650px;
+    line-height: 1.5;
+    font-size: 15px;
+    margin-top: 15px;
+    text-align: justify;
+}
+.mint{
+    background-color: aquamarine;
+    display: inline-block;
+}
+.shar{
+    background-color: bisque;
+    display: inline-block;
+}

@@ -1,0 +1,23 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 16px;
+}
+
+.badge {
+    background-color: #e74c3c;
+    color: #fff;
+    padding: 16px;
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .badge {
+        background-color: orange;
+    }
+}
+
+@media (min-width: 1024px) {
+    .badge {
+        background-color: green;
+    }
+}
