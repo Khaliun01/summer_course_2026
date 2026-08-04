@@ -1,0 +1,12 @@
+let currentX = 0;
+let circleY;
+function setup(){
+    createCanvas(600, 200);
+    background(220);
+    circleY = height / 2;
+    noStroke();
+}
+function draw(){
+    circle(currentX, circleY, 50)
+    currentX = currentX + 2
+}
