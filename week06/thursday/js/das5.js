@@ -45,6 +45,6 @@ function drawPlanet(cx, cy, radius, speed, size, pColor) {
     noStroke()
     fill(pColor)
     circle(x, y, size)
-
+    
     return { x: x, y: y }
 }
