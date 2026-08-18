@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="mn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Даалгавар 1 — Картын байрлал</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .cards {
+            padding: 16px;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #dddddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        @media (min-width: 768px) {
+            .cards {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+            }
+
+            .card {
+                margin-bottom: 0;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .cards {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+        }
+
+        /*
+      TODO 1: Таблет (min-width: 768px)
+      Media query бичиж дараах өөрчлөлтийг хий:
+        - .cards-ийг grid болго, 2 тэнцүү багана (1fr 1fr)
+        - gap: 16px
+        - .card-ийн margin-bottom-ийг 0 болго (gap нь орлоно)
+
+      TODO 2: Дэлгэц том үед (min-width: 1024px)
+      Media query бичиж дараах өөрчлөлтийг хий:
+        - .cards-ийг 3 тэнцүү багана болго
+
+      Шалгах: цонхны өргөнийг өөрчилж, 1 -> 2 -> 3 багана
+      болж өөрчлөгдөж байгааг ажигла.
+    */
+    </style>
+</head>
+
+<body>
+    <section class="cards">
+        <div class="card">
+            <h2>1. Бат-Эрдэнэ</h2>
+            <p>Оноо: 9850</p>
+        </div>
+        <div class="card">
+            <h2>2. Сарнай</h2>
+            <p>Оноо: 9420</p>
+        </div>
+        <div class="card">
+            <h2>3. Төмүүлэн</h2>
+            <p>Оноо: 8990</p>
+        </div>
+        <div class="card">
+            <h2>4. Анужин</h2>
+            <p>Оноо: 8760</p>
+        </div>
+        <div class="card">
+            <h2>5. Ганзориг</h2>
+            <p>Оноо: 8310</p>
+        </div>
+        <div class="card">
+            <h2>6. Номин</h2>
+            <p>Оноо: 7980</p>
+        </div>
+    </section>
+</body>
+
+</html>

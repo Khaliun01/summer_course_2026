@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/ex01.css">
+</head>
+
+<body>
+    <h1>Shape Controller</h1>
+    <div class="controls">
+
+        <label for="size-slider">
+            Size
+        </label>
+
+        <input id="size-slider" type="range" min="30" max="200" value="100">
+
+        <label for="color-input">
+            Color
+        </label>
+
+        <input id="color-input" type="color" value="#3498db">
+
+        <label for="shape-select">
+            Shape
+        </label>
+
+        <select id="shape-select">
+            <option value="circle">Circle</option>
+            <option value="square">Square</option>
+        </select>
+
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <script src="./p5.min.js"></script>
+    <script src="./js/ex01.js"></script>
+</body>
+
+</html>

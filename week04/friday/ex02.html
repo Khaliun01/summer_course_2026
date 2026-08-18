@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="mn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Даалгавар 2 — Цэс</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2c3e50;
+            color: #ffffff;
+            padding: 12px 16px;
+        }
+
+        .menu-button {
+            background-color: #34495e;
+            color: #ffffff;
+            border: none;
+            padding: 8px 12px;
+            font-size: 16px;
+        }
+
+        .links {
+            list-style: none;
+            display: none;
+            display: flex;
+            gap: 8px;
+        }
+
+        .links a {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+
+        @media (min-width: 1024px) {
+            .menu-button {
+                display: none;
+            }
+        }
+            /*
+      Одоо товч болон холбоосууд ХОЁУЛАА харагдаж байна.
+      Үүнийг засах хэрэгтэй:
+
+      TODO 1: Үндсэн (утасны) загварт
+        - .links-ийг нуу (display: none)
+
+      TODO 2: Том дэлгэц (min-width: 1024px)
+      Media query бичиж:
+        - .menu-button-ийг нуу
+        - .links-ийг flex мөр болгож харуул
+
+      Шалгах: нарийн цонхонд зөвхөн товч,
+      өргөн цонхонд зөвхөн холбоосууд харагдана.
+    */
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Оноон самбар</h1>
+        <button class="menu-button">☰ Цэс</button>
+        <ul class="links">
+            <li><a href="#">Нүүр</a></li>
+            <li><a href="#">Оноо</a></li>
+            <li><a href="#">Тоглогчид</a></li>
+        </ul>
+    </header>
+</body>
+
+</html>

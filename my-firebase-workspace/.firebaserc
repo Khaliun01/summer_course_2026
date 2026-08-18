@@ -1,0 +1,21 @@
+{
+  "projects": {
+    "default": "summer-course-2026-khaliun"
+  },
+  "targets": {
+    "summer-course-2026-khaliun": {
+      "hosting": {
+        "project01": [
+          "my-project01-app"
+        ],
+        "project02": [
+          "my-project02-app"
+        ],
+        "project03": [
+          "my-project03-app"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="mn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Даалгавар 3 — Холимог query</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: #ffffff;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .tablet-note {
+            background-color: #8e44ad;
+            color: #ffffff;
+            padding: 8px 16px;
+            text-align: center;
+            display: none;
+            /* анхнаасаа нуугдсан */
+        }
+
+        .content {
+            padding: 16px;
+        }
+
+        footer {
+            background-color: #2c3e50;
+            color: #ffffff;
+            padding: 12px;
+            text-align: center;
+        }
+
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .tablet-note {
+                display: block;
+            }
+        }
+
+        @media print {
+
+            header,
+            footer,
+            .tablet-note {
+                display: none;
+            }
+
+            body {
+                background-color: #ffffff;
+            }
+        }
+
+
+        /*
+      TODO 1: Зөвхөн таблет дээр
+      min-width: 768px БА max-width: 1023px хоёр нөхцөлтэй
+      НЭГ media query бичиж ("and"-аар холбоно):
+        - .tablet-note-ийг харуул (display: block)
+
+      TODO 2: Хэвлэх үед (@media print)
+        - header, footer, .tablet-note-ийг нуу
+        - body-ийн background-color-ийг #ffffff болго
+
+      Шалгах:
+        - Цонхыг 768px-1023px хооронд болгоход ягаан мөр гарна,
+          түүнээс нарийн эсвэл өргөн үед алга болно.
+        - Ctrl+P дарж хэвлэх урьдчилсан харагдацыг шалга:
+          зөвхөн жагсаалт харагдана.
+    */
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Улирлын эцсийн байр</h1>
+    </header>
+    <div class="tablet-note">Та таблет хэмжээтэй дэлгэц дээр байна</div>
+    <div class="content">
+        <p>1. Бат-Эрдэнэ — 9850</p>
+        <p>2. Сарнай — 9420</p>
+        <p>3. Төмүүлэн — 8990</p>
+    </div>
+    <footer>© 2026 Тоглоомын лиг</footer>
+</body>
+
+</html>
