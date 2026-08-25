@@ -81,9 +81,6 @@ let dayA = 0
 
 let scaleFactor = 1
 let roadH = 60
-let hintAlpha = 255
-let hintTimer = 0
-
 let skyPG
 let skyBucket = -1
 
@@ -679,7 +676,7 @@ function draw() {
     drawSteam()
     drawChimneySmoke()
     drawVignette()
-    drawHint()
+    drawShortcuts()
     drawUIButtons()
     drawStatus()
 }
@@ -2155,21 +2152,46 @@ function drawVignette() {
     }
 }
 
-function drawHint() {
-    if (hintAlpha <= 0) return
-    hintTimer++
-    if (hintTimer > 240) {
-        hintAlpha = max(0, hintAlpha - 3)
+function drawShortcuts() {
+    let s = scaleFactor
+    let items = [
+        ['D', 'өдөр шөнө'],
+        ['W', 'бороо / цас'],
+        ['L', 'барилгын гэрэл'],
+        ['B', 'Bat-Signal'],
+        ['A', 'автомат өдөр/шөнө'],
+        ['S', 'улирал'],
+        ['Дар', ' машин — аваар гэрэл'],
+        ['Дар', ' шон — унтраах'],
+        ['Дар', ' тэнгэр — салют']
+    ]
+    let pad = 9 * s
+    let lh = 14 * s
+    let fsz = 11 * s
+    textSize(fsz)
+    textAlign(LEFT, CENTER)
+    let keyCol = 0
+    let descCol = 0
+    for (let it of items) {
+        keyCol = max(keyCol, textWidth(it[0] + '  '))
+        descCol = max(descCol, textWidth(it[1]))
     }
+    let boxW = keyCol + descCol + pad * 2
+    let boxH = items.length * lh + pad * 2
+    let bx = pad
+    let by = height - roadH - boxH - pad
 
     noStroke()
-    fill(255, 255, 255, hintAlpha * 0.9)
-    textAlign(CENTER, CENTER)
-    textSize(14 * scaleFactor)
-    text("Сар/Нар, D — өдөр шөнө • A — автомат • S — улирал", width / 2, height - roadH - 72 * scaleFactor)
-    text("W — бороо/цас • L — гэрэл • B — Bat-Signal", width / 2, height - roadH - 54 * scaleFactor)
-    text("Машин — аваар гэрэл • Гэрлийн шон — унтраах", width / 2, height - roadH - 36 * scaleFactor)
-    text("Шөнө тэнгэрт дар — салют", width / 2, height - roadH - 18 * scaleFactor)
+    fill(10, 12, 24, 150)
+    rect(bx, by, boxW, boxH, 6 * s)
+
+    for (let i = 0; i < items.length; i++) {
+        let y = by + pad + i * lh + lh / 2
+        fill(255, 255, 255, 235)
+        text(items[i][0], bx + pad, y)
+        fill(255, 255, 255, 160)
+        text(items[i][1], bx + pad + keyCol, y)
+    }
 }
 
 function buildUIButtons() {
