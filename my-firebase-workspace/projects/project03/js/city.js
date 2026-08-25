@@ -6,12 +6,79 @@ let lamps = []
 
 let shootingStar = { x: 0, y: 0, speedX: 0, speedY: 0, active: false }
 
-let isDay = false      
-let dayProgress = 0 
-let nightA = 1  
-let dayA = 0  
+const CONFIG = {
+    windowRefresh: 4,
+    reflectionRefresh: 4,
+    plane: { margin: 80, yMin: 0.06, yMax: 0.3, speedMin: 2.2, speedMax: 3.4, spawn: [300, 600], cooldown: [400, 800] },
+    balloon: { margin: 80, yMin: 0.1, yMax: 0.35, speedMin: 0.8, speedMax: 1.4, spawn: [400, 800], cooldown: [500, 900] },
+    hero: { margin: 40, yMin: 0.08, yMax: 0.35, speedMin: 2, speedMax: 3.2, spawn: 480 },
+    fireworkTimer: [500, 1200],
+    honkTimer: [700, 1400],
+    brakeTimer: [500, 1200],
+    lightningTimer: [240, 600],
+    ufo: { margin: 90, yMin: 0.08, yMax: 0.3, speedMin: 1.6, speedMax: 2.6, spawn: [500, 900], cooldown: [600, 1000] },
+    drone: { margin: 90, yMin: 0.12, yMax: 0.4, speedMin: 1.8, speedMax: 2.8, spawn: [300, 700], cooldown: [400, 800] },
+    villain: { margin: 60, speedMin: 2.6, speedMax: 3 },
+    autoCycleFrames: 900,
+    puddleCount: 8
+}
 
-let bgMusic
+let planeCfg = {
+    margin: CONFIG.plane.margin,
+    yMin: CONFIG.plane.yMin,
+    yMax: CONFIG.plane.yMax,
+    speedMin: CONFIG.plane.speedMin,
+    speedMax: CONFIG.plane.speedMax,
+    cooldown: CONFIG.plane.cooldown
+}
+let balloonCfg = {
+    margin: CONFIG.balloon.margin,
+    yMin: CONFIG.balloon.yMin,
+    yMax: CONFIG.balloon.yMax,
+    speedMin: CONFIG.balloon.speedMin,
+    speedMax: CONFIG.balloon.speedMax,
+    cooldown: CONFIG.balloon.cooldown
+}
+let heroCfg = {
+    margin: CONFIG.hero.margin,
+    yMin: CONFIG.hero.yMin,
+    yMax: CONFIG.hero.yMax,
+    speedMin: CONFIG.hero.speedMin,
+    speedMax: CONFIG.hero.speedMax,
+    cooldown: [CONFIG.hero.spawn, CONFIG.hero.spawn],
+    onSpawn: o => { o.phase = random(TWO_PI) },
+    onDone: () => { heroTrail = [] }
+}
+let ufoCfg = {
+    margin: CONFIG.ufo.margin,
+    yMin: CONFIG.ufo.yMin,
+    yMax: CONFIG.ufo.yMax,
+    speedMin: CONFIG.ufo.speedMin,
+    speedMax: CONFIG.ufo.speedMax,
+    cooldown: CONFIG.ufo.cooldown,
+    onSpawn: o => { o.phase = random(TWO_PI) }
+}
+let droneCfg = {
+    margin: CONFIG.drone.margin,
+    yMin: CONFIG.drone.yMin,
+    yMax: CONFIG.drone.yMax,
+    speedMin: CONFIG.drone.speedMin,
+    speedMax: CONFIG.drone.speedMax,
+    cooldown: CONFIG.drone.cooldown,
+    onSpawn: o => { o.phase = random(TWO_PI) }
+}
+
+let reflPG = null
+let reflRedraw = 0
+let reflDirty = false
+let tallestB = null
+let resizeTimer = 0
+
+let isDay = false
+let dayProgress = 0
+let nightA = 1
+let dayA = 0
+
 let scaleFactor = 1
 let roadH = 60
 let hintAlpha = 255
@@ -36,18 +103,34 @@ let brakeTimer = 0
 let trees = []
 let leaves = []
 
-let audioCtx = null
-let masterGain = null
-let soundOn = true
-let noiseCache = null
-let rainNodes = null
 let shake = 0
-let cricketTimer = 0
-let birdSfxTimer = 0
+let fireworks = []
+let fireworkTimer = 0
+let rainbowTimer = 0
+let balloon = { active: false, x: 0, y: 0, timer: 0, dir: 1 }
+let roofCatIdx = 0
+let fwColors = [[255, 90, 120], [255, 200, 90], [120, 220, 255], [150, 255, 150], [230, 140, 255], [255, 255, 255]]
 
 let batSignal = false
-let hero = { active: false, x: 0, y: 0, speed: 0, phase: 0, dir: 1, timer: 0 }
+let hero = { active: false, x: 0, y: 0, speed: 0, phase: 0, dir: 1, timer: CONFIG.hero.spawn }
 let heroTrail = []
+
+let ufo = { active: false, x: 0, y: 0, speed: 0, phase: 0, dir: 1, timer: CONFIG.ufo.spawn[0] }
+let drone = { active: false, x: 0, y: 0, speed: 0, phase: 0, dir: 1, timer: CONFIG.drone.spawn[0] }
+let villain = { active: false, x: 0, y: 0, speed: 0, phase: 0, dir: 1, timer: 0 }
+let villainTrail = []
+let villainRoof = null
+let villainLurk = 0
+let animals = []
+let puddles = []
+let chimneySmoke = []
+let parallax = []
+let autoCycle = false
+let autoTimer = 0
+let season = 'summer'
+let rainA = 0
+let snowA = 0
+let uiBtns = []
 
 function preload() {
 
@@ -65,6 +148,15 @@ function setup() {
     loadState()
     dayProgress = isDay ? 1 : 0
 
+    rebuildScene()
+
+    if (autoCycle) autoTimer = CONFIG.autoCycleFrames
+    fireworkTimer = round(random(CONFIG.fireworkTimer[0], CONFIG.fireworkTimer[1]))
+
+    resetShootingStar()
+}
+
+function rebuildScene() {
     updateScale()
     initStars()
     initBuildings()
@@ -81,31 +173,46 @@ function setup() {
     initPlane()
     initTrees()
     initLeaves()
+    initBalloon()
+    initPuddles()
+    initAnimals()
+    initParallax()
+    initUfo()
+    initDrone()
+    buildUIButtons()
+    reflDirty = true
 
     skyPG = createGraphics(width, height)
     renderSkyPG()
     skyBucket = round(dayProgress * 60)
-
-    resetShootingStar()
-
-    if (bgMusic) {
-        bgMusic.loop()
-    }
 }
 
 function loadState() {
     try {
         let savedDay = localStorage.getItem('city_isDay')
         if (savedDay !== null) isDay = savedDay === 'true'
-    } catch (e) { }
+        let savedSeason = localStorage.getItem('city_season')
+        if (['summer', 'autumn', 'winter', 'spring'].includes(savedSeason)) season = savedSeason
+        let savedWeather = localStorage.getItem('city_weather')
+        if (['clear', 'rain', 'snow'].includes(savedWeather)) weather = savedWeather
+        let savedAuto = localStorage.getItem('city_auto')
+        if (savedAuto !== null) autoCycle = savedAuto === 'true'
+    } catch (e) {
+        console.warn('city: could not load state', e)
+    }
 }
 
 function saveState() {
     try {
         localStorage.setItem('city_isDay', isDay)
+        localStorage.setItem('city_season', season)
+        localStorage.setItem('city_weather', weather)
+        localStorage.setItem('city_auto', autoCycle)
         let lights = buildings.map(b => b.lightsOn)
         localStorage.setItem('city_lights', JSON.stringify(lights))
-    } catch (e) { }
+    } catch (e) {
+        console.warn('city: could not save state', e)
+    }
 }
 
 function loadLights() {
@@ -117,7 +224,9 @@ function loadLights() {
                 buildings[i].lightsOn = arr[i]
             }
         }
-    } catch (e) { }
+    } catch (e) {
+        console.warn('city: could not load lights', e)
+    }
 }
 
 function initCars() {
@@ -144,6 +253,7 @@ function initCars() {
             dir: dir,
             honk: 0,
             brake: 0,
+            hazardT: 0,
             type: sp.type,
             body: sp.body
         })
@@ -205,11 +315,42 @@ function initBuildings() {
             awningCol: awningCols[floor(random(awningCols.length))],
             lightsOn: true,
             flicker: random(0.01, 0.03),
+            windowsPG: null,
+            windowsDirty: true,
+            roofDecor: (roof === 'flat' || roof === 'taper') ? (random() < 0.55 ? 'ac' : 'dish') : null,
+            decorX: random(0.15, 0.85),
+            chimney: (roof === 'flat' || roof === 'taper') && random() < 0.3 ? { x: random(0.25, 0.75), h: (10 + random(8)) * scaleFactor } : null,
             hasAntenna: random() > 0.6 && (roof === 'flat' || roof === 'taper')
         })
         x += w + spacing
     }
+
+    let signDefs = [
+        { t: 'ПИЦЦА', c: '#ff5b7f' },
+        { t: 'BAR', c: '#5bc9ff' },
+        { t: 'HOTEL', c: '#ffd15b' },
+        { t: 'CINEMA', c: '#ff6b5b' },
+        { t: 'КАФЕ', c: '#7bffa8' },
+        { t: '♪', c: '#c98bff' }
+    ]
+    for (let b of buildings) {
+        if (random() < 0.35 && b.roof !== 'spire' && b.roof !== 'taper') {
+            let d = signDefs[floor(random(signDefs.length))]
+            b.sign = { t: d.t, c: d.c, y: random(height * 0.32, height * 0.55) }
+        } else {
+            b.sign = null
+        }
+    }
+
+    let catCands = buildings.map((b, i) => ({ b, i })).filter(o => o.b.roof === 'flat' || o.b.roof === 'taper')
+    roofCatIdx = catCands.length ? catCands[floor(random(catCands.length))].i : floor(random(buildings.length))
+
     loadLights()
+
+    tallestB = null
+    for (let c of buildings) {
+        if (!tallestB || c.y < tallestB.y) tallestB = c
+    }
 }
 
 function initClouds() {
@@ -228,7 +369,7 @@ function initLamps() {
     lamps = []
     let spacing = 140 * scaleFactor
     for (let x = spacing / 2; x < width; x += spacing) {
-        lamps.push({ x: x })
+        lamps.push({ x: x, on: true })
     }
 }
 
@@ -284,7 +425,7 @@ function initFireflies() {
 }
 
 function initLightning() {
-    lightning = { timer: round(random(200, 500)), flash: 0, bolt: [] }
+    lightning = { timer: round(random(CONFIG.lightningTimer[0], CONFIG.lightningTimer[1])), flash: 0, bolt: [] }
 }
 
 function initPeople() {
@@ -311,27 +452,40 @@ function initVents() {
 }
 
 function initPlane() {
-    plane = { active: false, x: 0, y: 0, speed: 0, timer: round(random(300, 600)), dir: 1 }
+    plane = { active: false, x: 0, y: 0, speed: 0, timer: round(random(CONFIG.plane.spawn[0], CONFIG.plane.spawn[1])), dir: 1 }
+}
+
+function initBalloon() {
+    balloon = { active: false, x: 0, y: 0, timer: round(random(CONFIG.balloon.spawn[0], CONFIG.balloon.spawn[1])), dir: 1 }
 }
 
 function initTrees() {
     trees = []
     let n = 7
-    let greens = ['#2e6b4f', '#3a7d5a', '#4d8a5c', '#5c946e', '#416b3a']
+    let palette = {
+        summer: ['#2e6b4f', '#3a7d5a', '#4d8a5c', '#5c946e', '#416b3a'],
+        spring: ['#5c946e', '#7ab648', '#8cc66b', '#6aa84f', '#7fae5e'],
+        autumn: ['#c98732', '#b5722e', '#d96c3c', '#a05b2e', '#c9a227'],
+        winter: ['#4a4a52', '#3d3d45', '#5a5a62', '#44444c', '#3a3a40']
+    }
     for (let i = 0; i < n; i++) {
         trees.push({
             x: random(width * 0.06, width * 0.94),
             y: height - roadH - 10 * scaleFactor,
             size: random(18, 30) * scaleFactor,
             phase: random(TWO_PI),
-            green: greens[floor(random(greens.length))]
+            green: palette[season][floor(random(palette[season].length))]
         })
     }
 }
 
 function initLeaves() {
     leaves = []
-    let cols = ['#7ab648', '#c9a227', '#d96c3c', '#6aa84f']
+    let kind = season === 'spring' ? 'petal' : 'leaf'
+    let cols = {
+        petal: ['#f7b8c8', '#f2a7bd', '#fcd3df', '#e89ab4'],
+        leaf: ['#c98732', '#d96c3c', '#a05b2e', '#c9a227', '#7ab648']
+    }
     for (let i = 0; i < 26; i++) {
         leaves.push({
             x: random(width),
@@ -339,201 +493,77 @@ function initLeaves() {
             size: random(2, 4) * scaleFactor,
             speed: random(0.4, 1) * scaleFactor,
             sway: random(TWO_PI),
-            col: cols[floor(random(cols.length))]
+            col: cols[kind][floor(random(cols[kind].length))],
+            kind: kind
         })
     }
 }
 
-function initAudio() {
-    if (audioCtx) {
-        if (audioCtx.state === 'suspended') audioCtx.resume()
-        return
-    }
-    try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)()
-        masterGain = audioCtx.createGain()
-        masterGain.gain.value = soundOn ? 0.5 : 0
-        masterGain.connect(audioCtx.destination)
-    } catch (e) { }
-}
-
-function noiseBuf() {
-    if (noiseCache) return noiseCache
-    let len = audioCtx.sampleRate * 2
-    let buffer = audioCtx.createBuffer(1, len, audioCtx.sampleRate)
-    let data = buffer.getChannelData(0)
-    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1
-    noiseCache = buffer
-    return noiseCache
-}
-
-function blip(freq, dur, type, vol, slideTo) {
-    if (!audioCtx || !soundOn) return
-    let t = audioCtx.currentTime
-    let osc = audioCtx.createOscillator()
-    let g = audioCtx.createGain()
-    osc.type = type
-    osc.frequency.setValueAtTime(freq, t)
-    if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + dur)
-    g.gain.setValueAtTime(0, t)
-    g.gain.linearRampToValueAtTime(vol, t + 0.01)
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur)
-    osc.connect(g).connect(masterGain)
-    osc.start(t)
-    osc.stop(t + dur + 0.05)
-}
-
-function noiseBurst(dur, vol, cutoff) {
-    if (!audioCtx || !soundOn) return
-    let t = audioCtx.currentTime
-    let src = audioCtx.createBufferSource()
-    src.buffer = noiseBuf()
-    let f = audioCtx.createBiquadFilter()
-    f.type = 'lowpass'
-    f.frequency.value = cutoff || 1200
-    let g = audioCtx.createGain()
-    g.gain.setValueAtTime(vol, t)
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur)
-    src.connect(f).connect(g).connect(masterGain)
-    src.start(t)
-    src.stop(t + dur + 0.05)
-}
-
-function playHonk() {
-    if (!audioCtx || !soundOn) return
-    blip(430, 0.28, 'square', 0.13, 350)
-    blip(452, 0.28, 'square', 0.09, 372)
-}
-
-function playBird() {
-    if (!audioCtx || !soundOn) return
-    blip(2600, 0.08, 'sine', 0.1, 3200)
-    setTimeout(() => { if (soundOn) blip(2900, 0.07, 'sine', 0.08, 3400) }, 130)
-}
-
-function playCricket() {
-    if (!audioCtx || !soundOn) return
-    let t = audioCtx.currentTime
-    for (let i = 0; i < 4; i++) {
-        let st = t + i * 0.05
-        let osc = audioCtx.createOscillator()
-        let g = audioCtx.createGain()
-        osc.type = 'square'
-        osc.frequency.value = 4200
-        g.gain.setValueAtTime(0, st)
-        g.gain.linearRampToValueAtTime(0.04, st + 0.005)
-        g.gain.linearRampToValueAtTime(0.0001, st + 0.04)
-        osc.connect(g).connect(masterGain)
-        osc.start(st)
-        osc.stop(st + 0.05)
+function initPuddles() {
+    puddles = []
+    for (let i = 0; i < CONFIG.puddleCount; i++) {
+        puddles.push({
+            x: random(width * 0.05, width * 0.95),
+            y: height - roadH + random(8, roadH * 0.7),
+            r: random(14, 34) * scaleFactor,
+            a: 0
+        })
     }
 }
 
-function playThunder() {
-    if (!audioCtx || !soundOn) return
-    noiseBurst(1.3, 0.45, 400)
-    noiseBurst(0.7, 0.3, 240)
-    shake = 16
-}
-
-function playSwoosh() {
-    if (!audioCtx || !soundOn) return
-    let t = audioCtx.currentTime
-    let src = audioCtx.createBufferSource()
-    src.buffer = noiseBuf()
-    let f = audioCtx.createBiquadFilter()
-    f.type = 'bandpass'
-    f.Q.value = 2
-    f.frequency.setValueAtTime(300, t)
-    f.frequency.exponentialRampToValueAtTime(3200, t + 0.5)
-    let g = audioCtx.createGain()
-    g.gain.setValueAtTime(0.0001, t)
-    g.gain.exponentialRampToValueAtTime(0.22, t + 0.15)
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5)
-    src.connect(f).connect(g).connect(masterGain)
-    src.start(t)
-    src.stop(t + 0.55)
-}
-
-function playChime() {
-    if (!audioCtx || !soundOn) return
-    blip(523, 0.4, 'sine', 0.13)
-    setTimeout(() => { if (soundOn) blip(659, 0.5, 'sine', 0.11) }, 130)
-}
-
-function playShoot() {
-    if (!audioCtx || !soundOn) return
-    blip(1300, 0.3, 'sine', 0.045, 320)
-}
-
-function ensureRain(on) {
-    if (!audioCtx) return
-    if (on && !rainNodes) {
-        let src = audioCtx.createBufferSource()
-        src.buffer = noiseBuf()
-        src.loop = true
-        let f = audioCtx.createBiquadFilter()
-        f.type = 'lowpass'
-        f.frequency.value = 900
-        let g = audioCtx.createGain()
-        g.gain.value = 0
-        src.connect(f).connect(g).connect(masterGain)
-        src.start()
-        rainNodes = { g: g }
-    }
-    if (rainNodes) {
-        let t = audioCtx.currentTime
-        let target = on ? 0.08 : 0
-        rainNodes.g.gain.cancelScheduledValues(t)
-        rainNodes.g.gain.setTargetAtTime(target, t, 0.3)
+function initAnimals() {
+    animals = []
+    let y = height - roadH - 6 * scaleFactor
+    let dogCols = ['#8a6f4d', '#7a5a3a', '#5c3d26']
+    for (let i = 0; i < 3; i++) {
+        let kind = random() < 0.5 ? 'cat' : 'dog'
+        animals.push({
+            x: random(width),
+            y: y + random(-2, 2) * scaleFactor,
+            speed: random(0.6, 1.3) * scaleFactor * (random() > 0.5 ? 1 : -1),
+            phase: random(TWO_PI),
+            kind: kind,
+            col: kind === 'cat' ? '#20242f' : dogCols[floor(random(dogCols.length))]
+        })
     }
 }
 
-function toggleSound() {
-    soundOn = !soundOn
-    if (masterGain) masterGain.gain.value = soundOn ? 0.5 : 0
-    if (!soundOn && rainNodes) rainNodes.g.gain.value = 0
+function initParallax() {
+    parallax = []
+    let x = 0
+    while (x < width) {
+        let w = random(30, 70) * scaleFactor
+        let h = random(height * 0.12, height * 0.42)
+        parallax.push({
+            x: x,
+            w: w,
+            h: h,
+            y: height - roadH - h,
+            tone: floor(random(4))
+        })
+        x += w + random(6, 22) * scaleFactor
+    }
+    parallax.span = x
 }
 
-function updateAmbient() {
-    if (!audioCtx) return
-    ensureRain(weather === 'rain')
-    if (cricketTimer <= 0) {
-        cricketTimer = round(random(260, 520))
-        if (nightA > 0.4) playCricket()
-    } else {
-        cricketTimer--
-    }
-    if (birdSfxTimer <= 0) {
-        birdSfxTimer = round(random(500, 900))
-        if (dayA > 0.5) playBird()
-    } else {
-        birdSfxTimer--
-    }
+function initUfo() {
+    ufo = { active: false, x: 0, y: 0, speed: 0, phase: 0, dir: 1, timer: round(random(CONFIG.ufo.spawn[0], CONFIG.ufo.spawn[1])) }
+}
+
+function initDrone() {
+    drone = { active: false, x: 0, y: 0, speed: 0, phase: 0, dir: 1, timer: round(random(CONFIG.drone.spawn[0], CONFIG.drone.spawn[1])) }
+}
+
+function setSeason(s) {
+    season = s
+    initTrees()
+    initLeaves()
 }
 
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight)
-    updateScale()
-    initStars()
-    initBuildings()
-    initClouds()
-    initCars()
-    initLamps()
-    initBirds()
-    initRain()
-    initSnow()
-    initFireflies()
-    initLightning()
-    initPeople()
-    initVents()
-    initPlane()
-    initTrees()
-    initLeaves()
-
-    skyPG = createGraphics(width, height)
-    renderSkyPG()
-    skyBucket = round(dayProgress * 60)
+    clearTimeout(resizeTimer)
+    resizeTimer = setTimeout(rebuildScene, 200)
 }
 
 function mixDayNight(nightColor, dayColor) {
@@ -546,24 +576,36 @@ function draw() {
     nightA = 1 - dayProgress
     dayA = dayProgress
 
+    rainA = lerp(rainA, weather === 'rain' ? 1 : 0, 0.03)
+    snowA = lerp(snowA, weather === 'snow' ? 1 : 0, 0.03)
+
+    autoCycleTick()
+
     if (honkTimer <= 0) {
-        honkTimer = round(random(700, 1400))
+        honkTimer = round(random(CONFIG.honkTimer[0], CONFIG.honkTimer[1]))
         honkCar(cars[floor(random(cars.length))], false)
     } else {
         honkTimer--
     }
 
     if (brakeTimer <= 0) {
-        brakeTimer = round(random(500, 1200))
+        brakeTimer = round(random(CONFIG.brakeTimer[0], CONFIG.brakeTimer[1]))
         let c = cars[floor(random(cars.length))]
         if (c.brake <= 0) c.brake = round(random(50, 120))
     } else {
         brakeTimer--
     }
 
+    if (nightA > 0.3) {
+        if (fireworkTimer <= 0) {
+            fireworkTimer = round(random(CONFIG.fireworkTimer[0], CONFIG.fireworkTimer[1]))
+            launchFirework()
+            if (random() < 0.5) launchFirework()
+        } else {
+            fireworkTimer--
+        }
+    }
     background(mixDayNight('#110c21', '#70a1ff'))
-
-    updateAmbient()
 
     if (shake > 0) {
         shake *= 0.88
@@ -584,6 +626,7 @@ function draw() {
         drawSky()
         drawShootingStar()
         drawPlane()
+        drawUfo()
         pop()
     }
 
@@ -592,20 +635,29 @@ function draw() {
         drawingContext.globalAlpha = dayA
         drawSun()
         drawClouds()
+        drawBalloon()
+        drawDrone()
         pop()
     }
 
+    drawRainbow()
+    drawFireworks()
     drawBirds()
     drawHero()
+    drawVillain()
 
+    drawParallax()
     drawSkylineGlow()
 
     for (let b of buildings) {
         drawBuilding(b)
     }
 
+    drawRoofCat()
+    drawNeonSigns()
     drawTrees()
     drawPeople()
+    drawAnimals()
 
     drawSignalDevice()
     drawBatSignal()
@@ -615,6 +667,7 @@ function draw() {
     drawRoad()
     drawShadows()
     drawReflections()
+    drawPuddles()
 
     for (let car of cars) {
         drawCar(car)
@@ -624,9 +677,20 @@ function draw() {
     drawLeaves()
     drawFireflies()
     drawSteam()
+    drawChimneySmoke()
     drawVignette()
     drawHint()
-    drawSoundIcon()
+    drawUIButtons()
+    drawStatus()
+}
+
+function autoCycleTick() {
+    if (!autoCycle) return
+    autoTimer--
+    if (autoTimer <= 0) {
+        autoTimer = CONFIG.autoCycleFrames
+        toggleDayNight()
+    }
 }
 
 function renderSkyPG() {
@@ -705,7 +769,7 @@ function drawAurora() {
         let yBase = height * (0.05 + i * 0.08)
         let col = i === 0 ? color(80, 255, 170, 24)
             : i === 1 ? color(70, 220, 255, 18)
-            : color(180, 110, 255, 16)
+                : color(180, 110, 255, 16)
         fill(col)
         let amp = 26 * scaleFactor
         beginShape()
@@ -813,7 +877,7 @@ function drawRain() {
         s.life--
         s.r += 1.4
         s.y -= 0.4
-        stroke(170, 200, 220, map(s.life, 16, 0, 110, 0))
+        stroke(170, 200, 220, map(s.life, 16, 0, 110, 0) * rainA)
         strokeWeight(1)
         noFill()
         ellipse(s.x, s.y, s.r, s.r * 0.3)
@@ -822,7 +886,7 @@ function drawRain() {
     rainSplash = rainSplash.filter(s => s.life > 0)
 
     for (let d of rain) {
-        stroke(160, 190, 220, 140)
+        stroke(160, 190, 220, 140 * rainA)
         strokeWeight(1.2)
         line(d.x, d.y, d.x - d.wind * 1.5, d.y + d.len)
     }
@@ -844,27 +908,27 @@ function drawSnow() {
     updateSnow()
     noStroke()
     for (let f of snow) {
-        fill(255, 255, 255, 200)
+        fill(255, 255, 255, 200 * snowA)
         circle(f.x, f.y, f.size)
     }
 }
 
 function drawWeather() {
-    if (weather === 'rain') {
+    if (rainA > 0.03) {
         drawRain()
         updateLightning()
         drawLightning()
-    } else if (weather === 'snow') {
-        drawSnow()
+    } else {
         lightning.flash = max(0, lightning.flash - 14)
     }
+    if (snowA > 0.03) drawSnow()
 }
 
 function updateLightning() {
     lightning.timer--
     if (lightning.timer <= 0) {
         strikeLightning()
-        lightning.timer = round(random(240, 600))
+        lightning.timer = round(random(CONFIG.lightningTimer[0], CONFIG.lightningTimer[1]))
     }
     lightning.flash = max(0, lightning.flash - 14)
 }
@@ -894,7 +958,7 @@ function strikeLightning() {
     }
     lightning.bolt = pts
     lightning.flash = 255
-    playThunder()
+    shake = 16
 }
 
 function drawLightning() {
@@ -937,11 +1001,7 @@ function drawBatShape(x, y, w) {
 }
 
 function tallestBuilding() {
-    let b = buildings[0]
-    for (let cand of buildings) {
-        if (cand.y < b.y) b = cand
-    }
-    return b
+    return tallestB
 }
 
 function signalSpot() {
@@ -996,25 +1056,9 @@ function drawBatSignal() {
 }
 
 function drawHero() {
-    hero.timer++
-    if (!hero.active && hero.timer > 480) {
-        hero.active = true
-        hero.timer = 0
-        hero.dir = random() > 0.5 ? 1 : -1
-        hero.x = hero.dir === 1 ? -40 : width + 40
-        hero.y = random(height * 0.08, height * 0.35)
-        hero.speed = hero.dir * random(3.5, 5.5) * scaleFactor
-        hero.phase = random(TWO_PI)
-    }
-    if (hero.active) {
-        hero.x += hero.speed
-        heroTrail.push({ x: hero.x, y: hero.y, life: 45 })
-        if ((hero.dir === 1 && hero.x > width + 40) || (hero.dir === -1 && hero.x < -40)) {
-            hero.active = false
-            heroTrail = []
-        }
-    }
-    if (!hero.active) return
+    if (!updateFlying(hero, heroCfg)) return
+
+    heroTrail.push({ x: hero.x, y: hero.y, life: 45 })
 
     noStroke()
     for (let p of heroTrail) {
@@ -1058,6 +1102,109 @@ function drawHero() {
     pop()
 }
 
+function drawVillain() {
+    if (batSignal) {
+        if (villain.active) {
+            villain.x += villain.speed
+            villain.y = lerp(villain.y, hero.active ? hero.y : villain.y, 0.02)
+            villainTrail.push({ x: villain.x, y: villain.y, life: 30 })
+            if ((villain.dir === 1 && villain.x > width + CONFIG.villain.margin) || (villain.dir === -1 && villain.x < -CONFIG.villain.margin)) {
+                villain.active = false
+                villainTrail = []
+                villain.timer = 40
+            }
+        } else {
+            if (villain.timer > 0) villain.timer--
+        }
+
+        if (!villain.active && villain.timer <= 0) {
+            villain.active = true
+            villainRoof = null
+            villain.dir = hero.active && hero.x < width / 2 ? 1 : -1
+            villain.x = villain.dir === 1 ? -CONFIG.villain.margin : width + CONFIG.villain.margin
+            villain.y = random(height * 0.1, height * 0.3)
+            villain.speed = villain.dir * random(CONFIG.villain.speedMin, CONFIG.villain.speedMax) * scaleFactor
+            villain.phase = random(TWO_PI)
+        }
+        if (!villain.active) return
+        drawVillainFigure()
+        return
+    }
+
+    if (villain.active) {
+        villain.active = false
+        villainTrail = []
+    }
+
+    villainLurk--
+    if (villainRoof) {
+        let r = villainRoof
+        if (hero.active && abs(hero.x - r.x) < 150 && abs(hero.y - r.y) < 150) {
+            villainRoof = null
+            villainLurk = round(random(400, 700))
+        }
+    } else if (villainLurk <= 0) {
+        let cands = buildings.filter(b => b.roof === 'flat' || b.roof === 'taper')
+        if (cands.length > 0) {
+            let b = cands[floor(random(cands.length))]
+            villainRoof = { x: b.x + b.w * 0.5, y: b.y - 10 * scaleFactor, w: b.tw }
+        }
+        villainLurk = round(random(600, 1000))
+    }
+    if (villainRoof) drawVillainOnRoof(villainRoof)
+}
+
+function drawVillainFigure() {
+    noStroke()
+    for (let p of villainTrail) {
+        p.life -= 2
+        fill(255, 60, 90, map(p.life, 30, 0, 40, 0))
+        circle(p.x, p.y, 2.5 * scaleFactor)
+    }
+    villainTrail = villainTrail.filter(p => p.life > 0)
+
+    push()
+    translate(villain.x, villain.y)
+    scale(scaleFactor)
+    if (villain.dir === -1) scale(-1, 1)
+
+    push()
+    blendMode(ADD)
+    noStroke()
+    fill(255, 60, 90, 26 * nightA)
+    ellipse(0, 4, 60, 14)
+    pop()
+
+    noStroke()
+    fill(18, 12, 22)
+    triangle(-6, -2, -22, 8, -2, 10)
+    ellipse(0, 0, 14, 16)
+    fill(6, 6, 12)
+    circle(0, -2, 8)
+    fill(255, 70, 60, 120 + 100 * nightA)
+    circle(0, -2, 3)
+    fill(18, 12, 22)
+    rect(-9, 6, 16, 8, 2)
+    pop()
+}
+
+function drawVillainOnRoof(r) {
+    let s = scaleFactor
+    let sway = sin(frameCount * 0.05) * 2 * s
+    push()
+    translate(r.x, r.y)
+    scale(s)
+    noStroke()
+    fill(14, 10, 18, 235)
+    ellipse(sway, 0, 18, 8)
+    circle(sway, -5, 8)
+    fill(6, 6, 12)
+    circle(sway, -5, 4)
+    fill(255, 70, 60, 200)
+    circle(sway, -5, 1.6)
+    pop()
+}
+
 function resetShootingStar() {
     shootingStar.x = random(width * 0.1, width * 0.5)
     shootingStar.y = random(20, height * 0.2)
@@ -1083,7 +1230,6 @@ function drawShootingStar() {
     shootingStar.y += shootingStar.speedY
 
     if (shootingStar.x > width || shootingStar.y > height * 0.5) {
-        if (random() < 0.12) playShoot()
         resetShootingStar()
     }
 }
@@ -1098,6 +1244,7 @@ function drawSkylineGlow() {
 function drawLamps() {
     let lampY = height - roadH - 4 * scaleFactor
     for (let l of lamps) {
+        if (!l.on) continue
         stroke(mixDayNight('#101225', '#2c3150'))
         strokeWeight(3 * scaleFactor)
         line(l.x, lampY, l.x, lampY - 45 * scaleFactor)
@@ -1115,6 +1262,7 @@ function drawLamps() {
 }
 
 function drawFireflies() {
+    if (season !== 'summer') return
     if (nightA < 0.05) return
     push()
     blendMode(ADD)
@@ -1161,7 +1309,7 @@ function drawPeople() {
         fill(lerpColor(color(p.coat), color(0), 0.6))
         circle(0, -14, 6)
 
-        if (weather === 'rain') {
+        if (rainA > 0.5) {
             fill(lerpColor(color('#2a2f4a'), color(0), 0.7 * nightA))
             arc(0, -16, 16, 12, PI, TWO_PI)
             stroke(60, 60, 80)
@@ -1191,25 +1339,148 @@ function drawSteam() {
     steam = steam.filter(p => p.life > 0)
 }
 
-function drawPlane() {
-    if (nightA < 0.05) return
-    if (!plane.active) {
-        plane.timer--
-        if (plane.timer <= 0) {
-            plane.active = true
-            plane.dir = random() > 0.5 ? 1 : -1
-            plane.x = plane.dir === 1 ? -80 : width + 80
-            plane.y = random(height * 0.06, height * 0.3)
-            plane.speed = plane.dir * random(2.2, 3.4) * scaleFactor
-        }
-    } else {
-        plane.x += plane.speed
-        if ((plane.dir === 1 && plane.x > width + 80) || (plane.dir === -1 && plane.x < -80)) {
-            plane.active = false
-            plane.timer = round(random(400, 800))
+function drawChimneySmoke() {
+    if (frameCount % 40 === 0) {
+        for (let b of buildings) {
+            if (!b.chimney) continue
+            let topX = buildingTopX(b)
+            let cx = topX + b.tw * b.chimney.x
+            let drift = weather === 'rain' ? random(-1.2, -0.6) : random(-0.5, -0.2)
+            chimneySmoke.push({
+                x: cx + random(-2, 2),
+                y: b.y - 10 * scaleFactor - b.chimney.h,
+                r: random(2, 3) * scaleFactor,
+                life: random(60, 110),
+                drift: drift
+            })
         }
     }
-    if (!plane.active) return
+    noStroke()
+    for (let p of chimneySmoke) {
+        p.y -= 0.35 * scaleFactor
+        p.x += p.drift * scaleFactor + sin(p.life * 0.1) * 0.2
+        p.r += 0.15 * scaleFactor
+        p.life--
+        fill(210, 215, 225, map(p.life, 110, 0, 70, 0))
+        circle(p.x, p.y, p.r * 2)
+    }
+    chimneySmoke = chimneySmoke.filter(p => p.life > 0)
+}
+
+function drawPuddles() {
+    let target = rainA
+    for (let p of puddles) {
+        p.a = lerp(p.a, target, 0.02)
+        if (p.a < 0.03) continue
+        let shimmer = 0.6 + 0.4 * sin(frameCount * 0.05 + p.x * 0.01)
+        fill(40, 50, 85, 140 * p.a)
+        ellipse(p.x, p.y, p.r, p.r * 0.32)
+        fill(160, 190, 215, 60 * p.a)
+        ellipse(p.x - p.r * 0.18, p.y - 1, p.r * 0.55, p.r * 0.12)
+        let lit = false
+        for (let l of lamps) {
+            if (l.on && abs(l.x - p.x) < 90 * scaleFactor) { lit = true; break }
+        }
+        if (lit && nightA > 0.1) {
+            fill(255, 215, 145, 45 * nightA * p.a * shimmer)
+            ellipse(p.x, p.y + 1, p.r * 0.8, p.r * 0.15)
+        }
+    }
+}
+
+function drawAnimals() {
+    for (let a of animals) {
+        a.x += a.speed
+        if (a.speed > 0 && a.x > width + 30) a.x = -30
+        if (a.speed < 0 && a.x < -30) a.x = width + 30
+
+        let s = scaleFactor
+        let leg = sin(frameCount * 0.15 + a.phase)
+        let bob = abs(leg) * 1.5 * s
+        let col = lerpColor(color(a.col), color(8, 10, 18), 0.75 * nightA)
+
+        push()
+        translate(a.x, a.y + bob)
+        scale(s)
+        if (a.speed < 0) scale(-1, 1)
+        noStroke()
+        fill(col)
+
+        if (a.kind === 'cat') {
+            ellipse(0, 0, 14, 5)
+            circle(6, -4, 5)
+            triangle(5, -6, 6, -9, 8, -6)
+            triangle(8, -6, 9, -9, 11, -6)
+            stroke(col)
+            strokeWeight(1.2)
+            line(-6, -1, -10, -4)
+            noStroke()
+        } else {
+            ellipse(0, 0, 16, 6)
+            circle(6, -4, 6)
+            ellipse(8, -3, 4, 3)
+            stroke(col)
+            strokeWeight(1.2)
+            line(-7, -1, -10, -4)
+            noStroke()
+        }
+
+        fill(lerpColor(color(a.col), color(0), 0.45))
+        for (let i = 0; i < 4; i++) {
+            let lx = -6 + i * 4
+            let lift = i % 2 === 0 ? leg : -leg
+            rect(lx, 0, 1.5, 3 + lift * 0.4)
+        }
+        pop()
+    }
+}
+
+function drawParallax() {
+    let ox = (mouseX - width / 2) * 0.03
+    let span = parallax.span || width
+    let col = mixDayNight(color(14, 16, 30, 150), color(120, 140, 175, 150))
+    noStroke()
+    for (let p of parallax) {
+        for (let o of [ox, ox + span, ox - span]) {
+            let x = p.x + o
+            if (x < -p.w - 10 || x > width + 10) continue
+            fill(col)
+            rect(x, p.y, p.w, p.h)
+            rect(x + p.w * 0.5 - p.w * 0.08, p.y - 8 * scaleFactor, p.w * 0.16, 8 * scaleFactor)
+            if (nightA > 0.3 && p.tone === 0) {
+                fill(255, 205, 120, 55 * nightA)
+                for (let i = 0; i < 3; i++) {
+                    rect(x + p.w * 0.15 + i * p.w * 0.3, p.y + p.h * 0.3 + i * p.h * 0.2, 3 * scaleFactor, 4 * scaleFactor)
+                }
+            }
+        }
+    }
+}
+
+function updateFlying(o, cfg) {
+    if (o.timer > 0) o.timer--
+    if (!o.active && o.timer <= 0) {
+        o.active = true
+        o.dir = random() > 0.5 ? 1 : -1
+        o.x = o.dir === 1 ? -cfg.margin : width + cfg.margin
+        o.y = random(height * cfg.yMin, height * cfg.yMax)
+        o.speed = o.dir * random(cfg.speedMin, cfg.speedMax) * scaleFactor
+        if (cfg.onSpawn) cfg.onSpawn(o)
+    }
+    if (o.active) {
+        o.x += o.speed
+        if ((o.dir === 1 && o.x > width + cfg.margin) || (o.dir === -1 && o.x < -cfg.margin)) {
+            o.active = false
+            o.timer = round(random(cfg.cooldown[0], cfg.cooldown[1]))
+            if (cfg.onDone) cfg.onDone(o)
+        }
+    }
+    return o.active
+}
+
+function drawPlane() {
+    if (nightA < 0.05) return
+    if (!updateFlying(plane, planeCfg)) return
 
     push()
     translate(plane.x, plane.y)
@@ -1246,8 +1517,69 @@ function drawPlane() {
     pop()
 }
 
+function drawUfo() {
+    if (nightA < 0.05) return
+    if (!updateFlying(ufo, ufoCfg)) return
+
+    let bob = sin(frameCount * 0.04 + ufo.phase) * 6 * scaleFactor
+    push()
+    translate(ufo.x, ufo.y + bob)
+    scale(scaleFactor)
+    if (ufo.dir === -1) scale(-1, 1)
+
+    push()
+    blendMode(ADD)
+    noStroke()
+    fill(180, 255, 200, 22 * nightA)
+    triangle(-12, 2, 12, 2, 0, 46)
+    pop()
+
+    noStroke()
+    fill(150, 165, 190)
+    ellipse(0, 0, 30, 10)
+    fill(90, 110, 145)
+    ellipse(0, 1, 30, 8)
+    fill(210, 235, 255)
+    arc(0, -3, 12, 12, PI, TWO_PI)
+    fill(120, 200, 255, 200)
+    circle(0, -4, 6)
+
+    let blink = sin(frameCount * 0.3 + ufo.phase) > 0 ? 255 : 90
+    fill(255, 90, 120, blink)
+    circle(-11, 0, 3)
+    fill(120, 255, 160, blink)
+    circle(11, 0, 3)
+    pop()
+}
+
+function drawDrone() {
+    if (dayA < 0.05) return
+    if (!updateFlying(drone, droneCfg)) return
+
+    let wob = sin(frameCount * 0.25 + drone.phase) * 3 * scaleFactor
+    push()
+    translate(drone.x, drone.y + wob)
+    scale(scaleFactor)
+    if (drone.dir === -1) scale(-1, 1)
+
+    noStroke()
+    fill(30, 34, 46)
+    rect(-4, -2, 8, 4, 2)
+    fill(70, 80, 100)
+    rect(-10, -5, 4, 3, 1)
+    rect(6, -5, 4, 3, 1)
+    rect(-10, 2, 4, 3, 1)
+    rect(6, 2, 4, 3, 1)
+    let blink = sin(frameCount * 0.4 + drone.phase) > 0 ? 255 : 80
+    fill(255, 40, 40, blink)
+    circle(0, -2, 2)
+    fill(255, 255, 255, 160)
+    rect(-1, -6, 2, 2)
+    pop()
+}
+
 function drawTrees() {
-    let snow = weather === 'snow'
+    let snow = snowA > 0.5
     for (let t of trees) {
         let sway = sin(frameCount * 0.02 + t.phase) * 2 * scaleFactor
         push()
@@ -1256,16 +1588,34 @@ function drawTrees() {
         ellipse(0, 3, t.size * 0.9, 6)
         fill(lerpColor(color('#5b3d26'), color(18, 14, 12), 0.6 * nightA))
         rect(-3 * scaleFactor, -t.size * 0.28, 6 * scaleFactor, t.size * 0.28, 2)
-        let c = color(t.green)
-        let ccol = snow
-            ? lerpColor(c, color(245, 248, 255), 0.65)
-            : lerpColor(c, color(8, 12, 10), 0.55 * nightA)
-        fill(ccol)
-        circle(sway, -t.size * 0.4, t.size)
-        fill(lerpColor(ccol, color(255, 255, 255), 0.1))
-        circle(sway - t.size * 0.18, -t.size * 0.52, t.size * 0.58)
-        circle(sway + t.size * 0.16, -t.size * 0.48, t.size * 0.52)
-        circle(sway, -t.size * 0.56, t.size * 0.5)
+        if (season === 'winter') {
+            fill(lerpColor(color('#3a3a40'), color(12, 14, 20), 0.6 * nightA))
+            circle(sway, -t.size * 0.4, t.size * 0.6)
+            if (snow) {
+                fill(235, 242, 250, 200)
+                circle(sway, -t.size * 0.4, t.size * 0.3)
+            }
+        } else {
+            let c = color(t.green)
+            let ccol = snow
+                ? lerpColor(c, color(245, 248, 255), 0.65)
+                : lerpColor(c, color(8, 12, 10), 0.55 * nightA)
+            fill(ccol)
+            circle(sway, -t.size * 0.4, t.size)
+            fill(lerpColor(ccol, color(255, 255, 255), 0.1))
+            circle(sway - t.size * 0.18, -t.size * 0.52, t.size * 0.58)
+            circle(sway + t.size * 0.16, -t.size * 0.48, t.size * 0.52)
+            circle(sway, -t.size * 0.56, t.size * 0.5)
+            if (season === 'spring') {
+                fill(255, 205, 225, 120)
+                circle(sway - t.size * 0.08, -t.size * 0.5, t.size * 0.16)
+                circle(sway + t.size * 0.12, -t.size * 0.42, t.size * 0.12)
+            }
+            if (snow) {
+                fill(235, 242, 250, 200)
+                circle(sway, -t.size * 0.44, t.size * 0.34)
+            }
+        }
         pop()
     }
 }
@@ -1286,7 +1636,8 @@ function drawShadows() {
 }
 
 function drawLeaves() {
-    if (weather !== 'clear') return
+    if (rainA > 0.3 || snowA > 0.3) return
+    if (season !== 'spring' && season !== 'autumn') return
     for (let l of leaves) {
         l.y += l.speed
         l.x += sin(frameCount * 0.02 + l.sway) * 0.8
@@ -1297,10 +1648,176 @@ function drawLeaves() {
         push()
         translate(l.x, l.y)
         rotate(sin(frameCount * 0.05 + l.sway) * 0.5)
-        fill(lerpColor(color(l.col), color(20, 25, 15), 0.5 * nightA))
-        ellipse(0, 0, l.size * 1.6, l.size)
+        if (l.kind === 'petal') {
+            fill(lerpColor(color(l.col), color(40, 20, 30), 0.3 * nightA))
+            ellipse(0, 0, l.size * 1.2, l.size * 0.8)
+        } else {
+            fill(lerpColor(color(l.col), color(20, 25, 15), 0.5 * nightA))
+            ellipse(0, 0, l.size * 1.6, l.size)
+        }
         pop()
     }
+}
+
+function launchFirework(x, targetY) {
+    let c = fwColors[floor(random(fwColors.length))]
+    fireworks.push({
+        x: x === undefined ? random(width * 0.15, width * 0.85) : x,
+        targetY: targetY === undefined ? random(height * 0.08, height * 0.3) : targetY,
+        y: height + 10,
+        col: c,
+        stage: 'up',
+        parts: []
+    })
+}
+
+function drawFireworks() {
+    for (let f of fireworks) {
+        if (f.stage === 'up') {
+            f.y -= 7 * scaleFactor
+            if (f.y <= f.targetY) {
+                f.stage = 'burst'
+                f.parts = []
+                let n = 46
+                for (let i = 0; i < n; i++) {
+                    let a = (i / n) * TWO_PI + random(-0.1, 0.1)
+                    let sp = random(2, 6) * scaleFactor
+                    f.parts.push({ x: f.x, y: f.y, vx: cos(a) * sp, vy: sin(a) * sp, life: random(38, 66) })
+                }
+            }
+            push()
+            blendMode(ADD)
+            noStroke()
+            fill(255, 235, 180, 200)
+            circle(f.x, f.y, 3)
+            stroke(255, 220, 150, 150)
+            strokeWeight(2)
+            line(f.x, f.y, f.x, f.y + 14)
+            pop()
+        } else {
+            let r = f.col[0], g = f.col[1], b = f.col[2]
+            push()
+            blendMode(ADD)
+            noStroke()
+            for (let p of f.parts) {
+                p.x += p.vx
+                p.y += p.vy
+                p.vy += 0.12
+                p.vx *= 0.985
+                p.life--
+                if (p.life <= 0) continue
+                let a = map(p.life, 66, 0, 200, 0)
+                fill(r, g, b, a)
+                circle(p.x, p.y, 3)
+                stroke(r, g, b, a * 0.5)
+                strokeWeight(1)
+                line(p.x, p.y, p.x - p.vx * 2, p.y - p.vy * 2)
+            }
+            pop()
+        }
+    }
+    fireworks = fireworks.filter(f => f.stage === 'up' || f.parts.length > 0)
+}
+
+function drawNeonSigns() {
+    if (nightA < 0.05) return
+    for (let b of buildings) {
+        if (!b.sign) continue
+        let s = b.sign
+        let c = color(s.c)
+        let r = red(c), g = green(c), bl = blue(c)
+        let cx = b.x + b.w / 2
+        let a = nightA * (random() < 0.008 ? 0.35 : 1)
+        push()
+        blendMode(ADD)
+        textAlign(CENTER, CENTER)
+        textStyle(BOLD)
+        let base = constrain(b.w * 0.2, 10, 20) * scaleFactor
+        for (let i = 3; i >= 1; i--) {
+            textSize(base + i * 4)
+            fill(r, g, bl, (4 - i) * 12 * a)
+            text(s.t, cx, s.y)
+        }
+        textSize(base)
+        fill(r, g, bl, 235 * a)
+        text(s.t, cx, s.y)
+        pop()
+    }
+}
+
+function drawRainbow() {
+    if (rainbowTimer <= 0) return
+    rainbowTimer--
+    let cx = width * 0.5
+    let cy = height * 0.95
+    let r0 = min(width, height) * 0.55
+    let a = map(rainbowTimer, 600, 0, 110, 0) * (0.35 + 0.65 * dayA)
+    if (a <= 1) return
+    noFill()
+    let cols = ['#ff5b5b', '#ff9f43', '#ffd75b', '#7bff8c', '#5bc9ff', '#9b7bff']
+    for (let i = 0; i < cols.length; i++) {
+        let c = color(cols[i])
+        stroke(red(c), green(c), blue(c), a)
+        strokeWeight(6 * scaleFactor)
+        arc(cx, cy, (r0 - i * 8 * scaleFactor) * 2, (r0 - i * 8 * scaleFactor) * 2, PI, TWO_PI)
+    }
+    noStroke()
+}
+
+function drawBalloon() {
+    if (dayA < 0.05) return
+    if (!updateFlying(balloon, balloonCfg)) return
+    balloon.y += sin(frameCount * 0.01) * 0.3
+
+    push()
+    translate(balloon.x, balloon.y)
+    scale(scaleFactor)
+    if (balloon.dir === -1) scale(-1, 1)
+    noStroke()
+    fill('#e55b5b')
+    ellipse(0, -4, 36, 42)
+    fill('#ffd75b')
+    ellipse(0, -4, 22, 42)
+    fill('#ffffff')
+    ellipse(0, -4, 10, 42)
+    fill(90, 60, 40)
+    triangle(-4, 14, 4, 14, 0, 26)
+    fill('#6b3f2a')
+    rect(-8, 26, 16, 10, 2)
+    fill(255, 200, 120, 160)
+    ellipse(0, 24, 10, 5)
+    pop()
+}
+
+function drawRoofCat() {
+    if (buildings.length === 0) return
+    let b = buildings[roofCatIdx] || buildings[0]
+    let s = scaleFactor
+    let cx = b.x + b.w * 0.4
+    let cy = b.y - 12 * s
+    let swish = sin(frameCount * 0.08) * 4 * s
+    noStroke()
+    fill(18, 16, 24, 230)
+    ellipse(cx, cy, 12 * s, 8 * s)
+    circle(cx + 6 * s, cy - 4 * s, 6 * s)
+    triangle(cx + 4 * s, cy - 7 * s, cx + 6 * s, cy - 10 * s, cx + 8 * s, cy - 6 * s)
+    triangle(cx + 7 * s, cy - 7 * s, cx + 9 * s, cy - 10 * s, cx + 10 * s, cy - 5 * s)
+    stroke(18, 16, 24, 220)
+    strokeWeight(2 * s)
+    line(cx - 6 * s, cy, cx - 12 * s, cy + 7 * s + swish)
+    noStroke()
+}
+
+function drawStatus() {
+    noStroke()
+    fill(255, 255, 255, 150)
+    textAlign(LEFT, TOP)
+    textSize(12 * scaleFactor)
+    let names = { summer: 'ЗУН', autumn: 'НАМАР', winter: 'ӨВӨЛ', spring: 'ХАВАР' }
+    let txt = names[season]
+    if (autoCycle) txt += ' • AUTO'
+    if (weather !== 'clear') txt += ' • ' + (weather === 'rain' ? 'БОРОО' : 'ЦАС')
+    text(txt, 14, 12)
 }
 
 function drawReflections() {
@@ -1318,6 +1835,7 @@ function drawReflections() {
 
     let lampY = height - roadH - 4 * scaleFactor
     for (let l of lamps) {
+        if (!l.on) continue
         let streakW = 3 * scaleFactor
         let flick = 0.5 + 0.5 * sin(frameCount * 0.05 + l.x * 0.01)
         fill(255, 220, 150, 46 * nightA * flick)
@@ -1326,6 +1844,30 @@ function drawReflections() {
         rect(l.x - streakW * 2, height - roadH + 2, streakW * 4, roadH)
     }
 
+    drawBuildingReflections()
+
+    pop()
+}
+
+function drawBuildingReflections() {
+    let rw = round(width)
+    let rh = round(roadH)
+    if (!reflPG || reflPG.width !== rw || reflPG.height !== rh) {
+        if (reflPG) reflPG.remove()
+        reflPG = createGraphics(rw, rh)
+    }
+    reflRedraw++
+    if (reflDirty || reflRedraw % CONFIG.reflectionRefresh === 0) {
+        renderBuildingReflections()
+        reflDirty = false
+    }
+    image(reflPG, 0, height - roadH)
+}
+
+function renderBuildingReflections() {
+    let pg = reflPG
+    pg.clear()
+    pg.noStroke()
     for (let b of buildings) {
         if (!b.lightsOn) continue
         for (let i = 0; i < 7; i++) {
@@ -1334,12 +1876,10 @@ function drawReflections() {
             let frac = ((i * 13) % 100) / 100
             let hh = (2 + frac * 8) * scaleFactor
             let shimmer = 0.7 + 0.3 * sin(frameCount * 0.06 + i * 2.2 + b.x * 0.01)
-            fill(255, 210, 130, 20 * nightA * shimmer)
-            rect(wx, height - roadH + 2 + frac * roadH, 2.2 * scaleFactor, hh)
+            pg.fill(255, 210, 130, 20 * nightA * shimmer)
+            pg.rect(wx, 2 + frac * roadH, 2.2 * scaleFactor, hh)
         }
     }
-
-    pop()
 }
 
 function buildingTopX(b) {
@@ -1415,14 +1955,14 @@ function drawRoof(b, topC) {
         let peakH = b.tw * 0.55
         fill(roofC)
         triangle(topX, b.y, topX + b.tw, b.y, topX + b.tw / 2, b.y - peakH)
-        if (weather === 'snow') {
+        if (snowA > 0.5) {
             fill(240, 246, 255, 200)
             triangle(topX, b.y, topX + b.tw, b.y, topX + b.tw / 2, b.y - peakH * 0.55)
         }
     } else if (b.roof === 'dome') {
         fill(roofC)
         ellipse(topX + b.tw / 2, b.y, b.tw * 1.02, b.tw * 0.72)
-        if (weather === 'snow') {
+        if (snowA > 0.5) {
             fill(240, 246, 255, 200)
             ellipse(topX + b.tw / 2, b.y - b.tw * 0.04, b.tw * 0.6, b.tw * 0.38)
         }
@@ -1431,7 +1971,7 @@ function drawRoof(b, topC) {
         let h = b.tw * 1.4
         let wTop = 2 * scaleFactor
         quad(topX, b.y, topX + b.tw, b.y, topX + b.tw / 2 + wTop, b.y - h, topX + b.tw / 2 - wTop, b.y - h)
-        if (weather === 'snow') {
+        if (snowA > 0.5) {
             fill(240, 246, 255, 180)
             quad(topX + b.tw * 0.3, b.y, topX + b.tw * 0.7, b.y, topX + b.tw / 2 + wTop, b.y - h, topX + b.tw / 2 - wTop, b.y - h)
         }
@@ -1441,7 +1981,7 @@ function drawRoof(b, topC) {
         fill(roofC)
         rect(topX + inset, b.y - stepH, b.tw - inset * 2, stepH)
         rect(topX + inset * 1.8, b.y - stepH * 2, b.tw - inset * 3.6, stepH)
-        if (weather === 'snow') {
+        if (snowA > 0.5) {
             fill(240, 246, 255, 200)
             rect(topX + inset, b.y - stepH - 2, b.tw - inset * 2, 3)
             rect(topX + inset * 1.8, b.y - stepH * 2 - 2, b.tw - inset * 3.6, 3)
@@ -1454,10 +1994,38 @@ function drawBuildingTop(b) {
     if (b.roof === 'flat' || b.roof === 'taper') {
         fill(mixDayNight('#101225', '#2c3150'))
         rect(topX + b.tw * 0.15, b.y - 10, b.tw * 0.7, 10)
-        if (weather === 'snow') {
+        if (snowA > 0.5) {
             fill(235, 242, 250, 200)
             rect(topX + b.tw * 0.15 - 2, b.y - 12, b.tw * 0.7 + 4, 4, 2)
         }
+
+        if (b.chimney) {
+            let cx = topX + b.tw * b.chimney.x
+            fill(mixDayNight('#0d0f1e', '#33395a'))
+            rect(cx - 3 * scaleFactor, b.y - 10 * scaleFactor - b.chimney.h, 6 * scaleFactor, b.chimney.h, 1)
+        }
+
+        if (b.roofDecor) {
+            let dx = topX + b.tw * b.decorX
+            let col = mixDayNight('#101225', '#2c3150')
+            if (b.roofDecor === 'ac') {
+                fill(col)
+                rect(dx - 5 * scaleFactor, b.y - 16 * scaleFactor, 10 * scaleFactor, 6 * scaleFactor, 1)
+                fill(lerpColor(col, color(255), 0.15))
+                rect(dx - 3 * scaleFactor, b.y - 14.5 * scaleFactor, 3 * scaleFactor, 3 * scaleFactor, 1)
+                rect(dx + 1 * scaleFactor, b.y - 14.5 * scaleFactor, 3 * scaleFactor, 3 * scaleFactor, 1)
+            } else {
+                stroke(col)
+                strokeWeight(1.5)
+                line(dx, b.y - 10, dx, b.y - 14 * scaleFactor)
+                noStroke()
+                fill(col)
+                circle(dx, b.y - 16 * scaleFactor, 5 * scaleFactor)
+                fill(lerpColor(col, color(255), 0.2))
+                arc(dx, b.y - 16 * scaleFactor, 3.5 * scaleFactor, 3.5 * scaleFactor, PI, TWO_PI)
+            }
+        }
+
         if (b.hasAntenna) {
             stroke(mixDayNight('#101225', '#2c3150'))
             strokeWeight(2)
@@ -1466,7 +2034,7 @@ function drawBuildingTop(b) {
             let blink = map(sin(frameCount * 0.05), -1, 1, 120, 255) * nightA
             fill(255, 90, 90, blink)
             circle(topX + b.tw * 0.5, b.y - 30, 6)
-            if (weather === 'snow') {
+            if (snowA > 0.5) {
                 fill(235, 242, 250, 180)
                 rect(topX + b.tw * 0.5 - 3, b.y - 34, 6, 3, 2)
             }
@@ -1484,6 +2052,22 @@ function drawBuildingTop(b) {
 }
 
 function drawWindows(b) {
+    let pw = round(b.w)
+    let ph = round(height - b.y)
+    if (!b.windowsPG || b.windowsPG.width !== pw || b.windowsPG.height !== ph) {
+        if (b.windowsPG) b.windowsPG.remove()
+        b.windowsPG = createGraphics(pw, ph)
+    }
+    b.windowFrame = (b.windowFrame || 0) + 1
+    if (b.windowsDirty || b.windowFrame % CONFIG.windowRefresh === 0) {
+        renderWindows(b)
+        b.windowsDirty = false
+    }
+    image(b.windowsPG, b.x, b.y)
+}
+
+function renderWindows(b) {
+    let pg = b.windowsPG
     let bx = b.x
     let by = b.y
     let bw = b.w
@@ -1491,7 +2075,10 @@ function drawWindows(b) {
     let cols = 3
     let padY = (height - by - 70) / (rows + 1)
 
-    noStroke()
+    pg.clear()
+    pg.noStroke()
+    pg.push()
+    pg.translate(-bx, -by)
     for (let r = 1; r <= rows; r++) {
         let t = (r - 1) / (rows - 1)
         let wAt = lerp(b.tw, bw, t)
@@ -1501,29 +2088,30 @@ function drawWindows(b) {
             let wx = left + c * padX - 8
             let wy = by + r * padY - 6
 
-            fill(35, 37, 60)
-            rect(wx, wy, 16, 12, 2)
+            pg.fill(35, 37, 60)
+            pg.rect(wx, wy, 16, 12, 2)
 
             if (b.lightsOn) {
                 let glow = map(sin(frameCount * b.flicker + r + c), -1, 1, 150, 255)
-                fill(255, 200, 120, 45 * nightA)
-                rect(wx - 3, wy - 3, 22, 18, 4)
-                fill(255, 224, 150, glow * nightA)
-                rect(wx, wy, 16, 12, 2)
+                pg.fill(255, 200, 120, 45 * nightA)
+                pg.rect(wx - 3, wy - 3, 22, 18, 4)
+                pg.fill(255, 224, 150, glow * nightA)
+                pg.rect(wx, wy, 16, 12, 2)
 
                 let hash = (r * 7 + c * 13 + bx) % 11
                 if (hash === 0) {
                     let sway = sin(frameCount * 0.08 + r * 2 + c * 3) * 2
-                    fill(24, 18, 34, 200 * nightA)
-                    circle(wx + 8 + sway, wy + 3, 5)
-                    ellipse(wx + 8 + sway, wy + 9, 8, 6)
+                    pg.fill(24, 18, 34, 200 * nightA)
+                    pg.circle(wx + 8 + sway, wy + 3, 5)
+                    pg.ellipse(wx + 8 + sway, wy + 9, 8, 6)
                 }
             }
 
-            fill(191, 227, 242, 255 * dayA)
-            rect(wx, wy, 16, 12, 2)
+            pg.fill(191, 227, 242, 255 * dayA)
+            pg.rect(wx, wy, 16, 12, 2)
         }
     }
+    pg.pop()
 }
 
 function drawGroundHaze() {
@@ -1578,47 +2166,64 @@ function drawHint() {
     fill(255, 255, 255, hintAlpha * 0.9)
     textAlign(CENTER, CENTER)
     textSize(14 * scaleFactor)
-    text("Сар / Нар эсвэл D дар — өдөр шөнө сольж үзээрэй", width / 2, height - roadH - 72 * scaleFactor)
-    text("Машин дээр дар • W — бороо/цас • L — цонх", width / 2, height - roadH - 54 * scaleFactor)
-    text("Барилгын гэрэлд дар эсвэл B — Bat-Signal", width / 2, height - roadH - 36 * scaleFactor)
-    text("M — дуу асаах/унтраах", width / 2, height - roadH - 18 * scaleFactor)
+    text("Сар/Нар, D — өдөр шөнө • A — автомат • S — улирал", width / 2, height - roadH - 72 * scaleFactor)
+    text("W — бороо/цас • L — гэрэл • B — Bat-Signal", width / 2, height - roadH - 54 * scaleFactor)
+    text("Машин — аваар гэрэл • Гэрлийн шон — унтраах", width / 2, height - roadH - 36 * scaleFactor)
+    text("Шөнө тэнгэрт дар — салют", width / 2, height - roadH - 18 * scaleFactor)
 }
 
-function drawSoundIcon() {
-    push()
-    translate(width - 30 * scaleFactor, 28 * scaleFactor)
-    fill(255, 255, 255, 180)
-    beginShape()
-    vertex(-8, -4)
-    vertex(-2, -4)
-    vertex(4, -8)
-    vertex(4, 8)
-    vertex(-2, 4)
-    vertex(-8, 4)
-    endShape(CLOSE)
-    if (soundOn) {
-        noFill()
-        stroke(255, 255, 255, 180)
-        strokeWeight(1.5 * scaleFactor)
-        arc(6, 0, 9, 9, -HALF_PI, HALF_PI)
-        arc(6, 0, 16, 16, -HALF_PI, HALF_PI)
-    } else {
-        stroke(255, 80, 80, 220)
-        strokeWeight(2 * scaleFactor)
-        line(-7, -7, 7, 7)
-        line(-7, 7, 7, -7)
+function buildUIButtons() {
+    let bw = 92 * scaleFactor
+    let bh = 24 * scaleFactor
+    let bx = width - bw - 10 * scaleFactor
+    uiBtns = [
+        { label: 'УЛИРАЛ', x: bx, y: 56 * scaleFactor, w: bw, h: bh, act: cycleSeason },
+        { label: 'AUTO', x: bx, y: 86 * scaleFactor, w: bw, h: bh, act: toggleAuto }
+    ]
+}
+
+function drawUIButtons() {
+    noStroke()
+    for (let b of uiBtns) {
+        fill(20, 24, 40, 150)
+        rect(b.x, b.y, b.w, b.h, 6 * scaleFactor)
+        fill(255, 255, 255, 190)
+        textAlign(CENTER, CENTER)
+        textSize(11 * scaleFactor)
+        text(b.label, b.x + b.w / 2, b.y + b.h / 2 + 1)
     }
-    pop()
+}
+
+function cycleSeason() {
+    let order = ['summer', 'autumn', 'winter', 'spring']
+    setSeason(order[(order.indexOf(season) + 1) % order.length])
+    saveState()
+}
+
+function toggleAuto() {
+    autoCycle = !autoCycle
+    autoTimer = CONFIG.autoCycleFrames
+    saveState()
 }
 
 function drawCar(car) {
     if (car.brake > 0) car.brake--
+    if (car.hazardT > 0) car.hazardT--
 
     push()
     translate(car.x, car.y)
     scale(scaleFactor)
     if (car.dir === -1) scale(-1, 1)
     noStroke()
+
+    if (car.hazardT > 0) {
+        let on = sin(frameCount * 0.3) > 0
+        fill(255, 180, 60, on ? 235 : 60)
+        rect(-1, 1, 2.5, 4, 1)
+        rect(-1, 9, 2.5, 4, 1)
+        rect(46, 1, 2.5, 4, 1)
+        rect(46, 9, 2.5, 4, 1)
+    }
 
     if (nightA > 0.1 && car.baseSpeed > 5) {
         push()
@@ -1670,6 +2275,7 @@ function drawCar(car) {
     pop()
 
     let eff = car.brake > 0 ? 0.35 : 1
+    if (car.hazardT > 0) eff = 0
     car.x += car.speed * eff
     if (car.speed > 0 && car.x > width + 120) {
         car.x = -140
@@ -1777,13 +2383,11 @@ function drawCarLights(car) {
 
 function toggleDayNight() {
     isDay = !isDay
-    playChime()
     saveState()
 }
 
 function honkCar(car, randomizeColor) {
     car.honk = 30
-    playHonk()
     if (randomizeColor) {
         let colors = ["#ff5e5e", "#bd8dc2", "#8be9fd", "#5be37a", "#ffd166", "#ff9f43", "#7bdff2"]
         car.body = colors[floor(random(colors.length))]
@@ -1791,12 +2395,17 @@ function honkCar(car, randomizeColor) {
 }
 
 function handleTap(px, py) {
-    initAudio()
+    for (let b of uiBtns) {
+        if (px > b.x && px < b.x + b.w && py > b.y && py < b.y + b.h) {
+            b.act()
+            return
+        }
+    }
     for (let car of cars) {
         let w = 60 * scaleFactor
         let h = 34 * scaleFactor
         if (px > car.x - w / 2 && px < car.x + w / 2 && py > car.y - h / 2 && py < car.y + h / 2) {
-            honkCar(car, true)
+            car.hazardT = round(random(140, 220))
             return
         }
     }
@@ -1808,58 +2417,74 @@ function handleTap(px, py) {
         return
     }
 
+    if (nightA > 0.3 && py < height * 0.6) {
+        launchFirework(px, py)
+        return
+    }
+
     let spot = signalSpot()
     if (dist(px, py, spot.x, spot.y) < 22 * scaleFactor) {
         batSignal = !batSignal
-        playSwoosh()
         return
     }
     if (batSignal) {
         let bat = signalBatInfo()
         if (dist(px, py, bat.x, bat.y) < bat.w * 0.6) {
             batSignal = false
-            playSwoosh()
+            return
+        }
+    }
+
+    let lampY = height - roadH - 4 * scaleFactor
+    for (let l of lamps) {
+        if (dist(px, py, l.x, lampY) < 26 * scaleFactor) {
+            l.on = !l.on
             return
         }
     }
 
     for (let b of buildings) {
-        if (px > b.x && px < b.x + b.w && py > b.y && py < height) {
+        if (px > b.x && px < b.x + b.w && py > b.y && py < height - roadH) {
             b.lightsOn = !b.lightsOn
+            b.windowsDirty = true
+            reflDirty = true
             saveState()
         }
     }
 }
 
 function mousePressed() {
-    initAudio()
     handleTap(mouseX, mouseY)
 }
 
 function keyPressed() {
-    initAudio()
     let k = key.toLowerCase()
     if (k === 'd') {
         toggleDayNight()
     } else if (k === 'w') {
+        let old = weather
         weather = weather === 'clear' ? 'rain' : (weather === 'rain' ? 'snow' : 'clear')
+        if (weather === 'clear' && (old === 'rain' || old === 'snow')) rainbowTimer = 600
+        saveState()
     } else if (k === 'l') {
         let anyOn = buildings.some(b => b.lightsOn)
         for (let b of buildings) {
             b.lightsOn = !anyOn
+            b.windowsDirty = true
         }
+        reflDirty = true
         saveState()
     } else if (k === 'b') {
         batSignal = !batSignal
-        playSwoosh()
-    } else if (k === 'm') {
-        toggleSound()
+    } else if (k === 'a') {
+        toggleAuto()
+    } else if (k === 's') {
+        cycleSeason()
     }
     return false
 }
 
 function touchStarted() {
-    initAudio()
     if (touches.length > 0) {
         handleTap(touches[0].x, touches[0].y)
     }
