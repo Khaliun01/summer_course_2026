@@ -23,50 +23,25 @@ const CONFIG = {
     puddleCount: 8
 }
 
-let planeCfg = {
-    margin: CONFIG.plane.margin,
-    yMin: CONFIG.plane.yMin,
-    yMax: CONFIG.plane.yMax,
-    speedMin: CONFIG.plane.speedMin,
-    speedMax: CONFIG.plane.speedMax,
-    cooldown: CONFIG.plane.cooldown
+function flyingCfg(name, extra) {
+    return Object.assign({
+        margin: CONFIG[name].margin,
+        yMin: CONFIG[name].yMin,
+        yMax: CONFIG[name].yMax,
+        speedMin: CONFIG[name].speedMin,
+        speedMax: CONFIG[name].speedMax,
+        cooldown: CONFIG[name].cooldown
+    }, extra)
 }
-let balloonCfg = {
-    margin: CONFIG.balloon.margin,
-    yMin: CONFIG.balloon.yMin,
-    yMax: CONFIG.balloon.yMax,
-    speedMin: CONFIG.balloon.speedMin,
-    speedMax: CONFIG.balloon.speedMax,
-    cooldown: CONFIG.balloon.cooldown
-}
-let heroCfg = {
-    margin: CONFIG.hero.margin,
-    yMin: CONFIG.hero.yMin,
-    yMax: CONFIG.hero.yMax,
-    speedMin: CONFIG.hero.speedMin,
-    speedMax: CONFIG.hero.speedMax,
+let planeCfg = flyingCfg('plane')
+let balloonCfg = flyingCfg('balloon')
+let heroCfg = flyingCfg('hero', {
     cooldown: [CONFIG.hero.spawn, CONFIG.hero.spawn],
     onSpawn: o => { o.phase = random(TWO_PI) },
     onDone: () => { heroTrail = [] }
-}
-let ufoCfg = {
-    margin: CONFIG.ufo.margin,
-    yMin: CONFIG.ufo.yMin,
-    yMax: CONFIG.ufo.yMax,
-    speedMin: CONFIG.ufo.speedMin,
-    speedMax: CONFIG.ufo.speedMax,
-    cooldown: CONFIG.ufo.cooldown,
-    onSpawn: o => { o.phase = random(TWO_PI) }
-}
-let droneCfg = {
-    margin: CONFIG.drone.margin,
-    yMin: CONFIG.drone.yMin,
-    yMax: CONFIG.drone.yMax,
-    speedMin: CONFIG.drone.speedMin,
-    speedMax: CONFIG.drone.speedMax,
-    cooldown: CONFIG.drone.cooldown,
-    onSpawn: o => { o.phase = random(TWO_PI) }
-}
+})
+let ufoCfg = flyingCfg('ufo', { onSpawn: o => { o.phase = random(TWO_PI) } })
+let droneCfg = flyingCfg('drone', { onSpawn: o => { o.phase = random(TWO_PI) } })
 
 let reflPG = null
 let reflRedraw = 0
@@ -129,10 +104,6 @@ let rainA = 0
 let snowA = 0
 let uiBtns = []
 
-function preload() {
-
-}
-
 function updateScale() {
     scaleFactor = constrain(min(width, height) / 700, 0.55, 1.15)
     roadH = 60 * scaleFactor
@@ -167,15 +138,15 @@ function rebuildScene() {
     initLightning()
     initPeople()
     initVents()
-    initPlane()
+    initFlying(plane, CONFIG.plane)
     initTrees()
     initLeaves()
-    initBalloon()
+    initFlying(balloon, CONFIG.balloon)
     initPuddles()
     initAnimals()
     initParallax()
-    initUfo()
-    initDrone()
+    initFlying(ufo, CONFIG.ufo)
+    initFlying(drone, CONFIG.drone)
     buildUIButtons()
     reflDirty = true
 
@@ -448,12 +419,14 @@ function initVents() {
     steam = []
 }
 
-function initPlane() {
-    plane = { active: false, x: 0, y: 0, speed: 0, timer: round(random(CONFIG.plane.spawn[0], CONFIG.plane.spawn[1])), dir: 1 }
-}
-
-function initBalloon() {
-    balloon = { active: false, x: 0, y: 0, timer: round(random(CONFIG.balloon.spawn[0], CONFIG.balloon.spawn[1])), dir: 1 }
+function initFlying(o, cfg) {
+    o.active = false
+    o.x = 0
+    o.y = 0
+    o.speed = 0
+    o.phase = 0
+    o.dir = 1
+    o.timer = round(random(cfg.spawn[0], cfg.spawn[1]))
 }
 
 function initTrees() {
@@ -543,14 +516,6 @@ function initParallax() {
     parallax.span = x
 }
 
-function initUfo() {
-    ufo = { active: false, x: 0, y: 0, speed: 0, phase: 0, dir: 1, timer: round(random(CONFIG.ufo.spawn[0], CONFIG.ufo.spawn[1])) }
-}
-
-function initDrone() {
-    drone = { active: false, x: 0, y: 0, speed: 0, phase: 0, dir: 1, timer: round(random(CONFIG.drone.spawn[0], CONFIG.drone.spawn[1])) }
-}
-
 function setSeason(s) {
     season = s
     initTrees()
@@ -580,7 +545,7 @@ function draw() {
 
     if (honkTimer <= 0) {
         honkTimer = round(random(CONFIG.honkTimer[0], CONFIG.honkTimer[1]))
-        honkCar(cars[floor(random(cars.length))], false)
+        honkCar(cars[floor(random(cars.length))])
     } else {
         honkTimer--
     }
@@ -2161,9 +2126,9 @@ function drawShortcuts() {
         ['B', 'Bat-Signal'],
         ['A', 'автомат өдөр/шөнө'],
         ['S', 'улирал'],
-        ['Дар', ' машин — аваар гэрэл'],
-        ['Дар', ' шон — унтраах'],
-        ['Дар', ' тэнгэр — салют']
+        ['Дар', '  машин — аваар гэрэл'],
+        ['Дар', '  шон — унтраах'],
+        ['Дар', '  тэнгэр — салют']
     ]
     let pad = 9 * s
     let lh = 14 * s
@@ -2408,12 +2373,8 @@ function toggleDayNight() {
     saveState()
 }
 
-function honkCar(car, randomizeColor) {
+function honkCar(car) {
     car.honk = 30
-    if (randomizeColor) {
-        let colors = ["#ff5e5e", "#bd8dc2", "#8be9fd", "#5be37a", "#ffd166", "#ff9f43", "#7bdff2"]
-        car.body = colors[floor(random(colors.length))]
-    }
 }
 
 function handleTap(px, py) {
